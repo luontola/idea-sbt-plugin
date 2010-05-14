@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>net.orfjackal.idea-sbt-plugin</groupId>
+        <artifactId>sbt</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>sbt-plugin</artifactId>
+    <packaging>jar</packaging>
+    <name>sbt-plugin</name>
+
+    <dependencies>
+
+        <!-- IntelliJ IDEA -->
+
+        <dependency>
+            <groupId>com.intellij</groupId>
+            <artifactId>openapi</artifactId>
+            <version>${idea.version}</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/openapi.jar</systemPath>
+        </dependency>
+
+<!--
+        <dependency>
+            <groupId>com.intellij</groupId>
+            <artifactId>extensions</artifactId>
+            <version>${idea.version}</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/extensions.jar</systemPath>
+        </dependency>
+-->
+
+        <dependency>
+            <groupId>com.intellij</groupId>
+            <artifactId>jdom</artifactId>
+            <version>${idea.version}</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/jdom.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>com.intellij</groupId>
+            <artifactId>util</artifactId>
+            <version>${idea.version}</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/util.jar</systemPath>
+        </dependency>
+
+        <!--
+        <dependency>
+            <groupId>com.intellij</groupId>
+            <artifactId>picocontainer</artifactId>
+            <version>${idea.version}</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/picocontainer.jar</systemPath>
+        </dependency>
+-->
+
+    </dependencies>
+
+</project>
