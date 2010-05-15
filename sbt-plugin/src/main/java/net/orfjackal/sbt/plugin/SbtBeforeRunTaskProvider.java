@@ -56,27 +56,22 @@ public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRun
     }
 
     public boolean executeTask(DataContext dataContext, RunConfiguration runConfiguration, final SbtBeforeRunTask task) {
-        final Semaphore done = new Semaphore();
-        final AtomicBoolean success = new AtomicBoolean(false);
-
+        final CompletionSignal signal = new CompletionSignal();
         try {
             ApplicationManager.getApplication().invokeAndWait(new Runnable() {
                 public void run() {
-                    executeInBackground(task, done, success);
+                    executeInBackground(task, signal);
                 }
             }, ModalityState.NON_MODAL);
-
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
-
-        done.waitFor();
-        return success.get();
+        return signal.waitForResult();
     }
 
-    private void executeInBackground(SbtBeforeRunTask task, final Semaphore done, final AtomicBoolean success) {
-        done.down();
+    private void executeInBackground(SbtBeforeRunTask task, final CompletionSignal signal) {
+        signal.begin();
         new Task.Backgroundable(project, MessageBundle.message("sbt.tasks.executing"), true) {
             public void run(ProgressIndicator indicator) {
                 try {
@@ -89,11 +84,33 @@ public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRun
                         e.printStackTrace();
                     }
 
-                    success.set(true);
+                    signal.success();
                 } finally {
-                    done.up();
+                    signal.finished();
                 }
             }
         }.queue();
+    }
+
+    private static class CompletionSignal {
+        private final Semaphore done = new Semaphore();
+        private final AtomicBoolean result = new AtomicBoolean(false);
+
+        public void begin() {
+            done.up();
+        }
+
+        public void success() {
+            result.set(true);
+        }
+
+        public void finished() {
+            done.down();
+        }
+
+        public boolean waitForResult() {
+            done.waitFor();
+            return result.get();
+        }
     }
 }
