@@ -5,12 +5,11 @@
 package net.orfjackal.sbt.runner;
 
 import java.io.*;
-import java.util.Scanner;
 
 public class SbtRunner {
 
     private static final String PROMPT = "\n> ";
-    private static final String PROMPT_AFTER_EMPTY_COMMAND = "> ";
+    private static final String PROMPT_AFTER_EMPTY_ACTION = "> ";
 
     private final ProcessRunner sbt;
 
@@ -48,48 +47,10 @@ public class SbtRunner {
         sbt.writeInput(action + "\n");
 
         if (action.trim().isEmpty()) {
-            output.waitForOutput(PROMPT_AFTER_EMPTY_COMMAND);
+            output.waitForOutput(PROMPT_AFTER_EMPTY_ACTION);
         } else {
             output.waitForOutput(PROMPT);
         }
         output.close();
-    }
-
-    public static void main(String[] args) throws Exception {
-        File launcherJar = new File(System.getProperty("user.home"), "bin/sbt-launch.jar");
-        final SbtRunner sbt = new SbtRunner(new File("/tmp"), launcherJar);
-
-        final OutputReader output = sbt.subscribeToOutput();
-        sbt.start();
-
-        Thread printer = new Thread(new Runnable() {
-            public void run() {
-                try {
-                    int ch;
-                    while ((ch = output.read()) != -1) {
-                        System.out.print((char) ch);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        printer.start();
-
-        Scanner in = new Scanner(System.in);
-        while (true) {
-            final String action = in.nextLine();
-
-            Thread t = new Thread(new Runnable() {
-                public void run() {
-                    try {
-                        sbt.execute(action);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-            t.start();
-        }
     }
 }
