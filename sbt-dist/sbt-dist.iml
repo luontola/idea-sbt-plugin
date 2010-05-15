@@ -13,6 +13,7 @@
     <orderEntry type="library" name="Maven: com.intellij:openapi:95.66" level="project" />
     <orderEntry type="library" name="Maven: com.intellij:jdom:95.66" level="project" />
     <orderEntry type="library" name="Maven: com.intellij:util:95.66" level="project" />
+    <orderEntry type="library" exported="" name="Maven: com.miglayout:miglayout:3.7.3" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: junit:junit:4.8.1" level="project" />
   </component>
 </module>

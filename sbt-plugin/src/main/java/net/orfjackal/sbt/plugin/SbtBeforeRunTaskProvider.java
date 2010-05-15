@@ -44,23 +44,28 @@ public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRun
     }
 
     public boolean configureTask(RunConfiguration runConfiguration, SbtBeforeRunTask task) {
-        SelectSbtActionDialog dialog = new SelectSbtActionDialog(project);
+        SelectSbtActionDialog dialog = new SelectSbtActionDialog(project, task.getAction());
 
         dialog.show();
         if (!dialog.isOK()) {
             return false;
         }
 
-        task.setAction(dialog.getAction());
+        task.setAction(dialog.getSelectedAction());
         return true;
     }
 
     public boolean executeTask(DataContext dataContext, RunConfiguration runConfiguration, final SbtBeforeRunTask task) {
+        final String action = task.getAction();
+        if (action == null) {
+            return false;
+        }
+
         final CompletionSignal signal = new CompletionSignal();
         try {
             ApplicationManager.getApplication().invokeAndWait(new Runnable() {
                 public void run() {
-                    executeInBackground(task, signal);
+                    executeInBackground(action, signal);
                 }
             }, ModalityState.NON_MODAL);
         } catch (Exception e) {
@@ -70,13 +75,12 @@ public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRun
         return signal.waitForResult();
     }
 
-    private void executeInBackground(SbtBeforeRunTask task, final CompletionSignal signal) {
+    private void executeInBackground(String action, final CompletionSignal signal) {
         signal.begin();
-        new Task.Backgroundable(project, MessageBundle.message("sbt.tasks.executing"), true) {
+        new Task.Backgroundable(project, MessageBundle.message("sbt.tasks.executing"), false) {
             public void run(ProgressIndicator indicator) {
                 try {
 
-                    System.out.println("SbtBeforeRunTaskProvider.run");
                     // TODO: send command and wait until done
                     try {
                         Thread.sleep(5000);

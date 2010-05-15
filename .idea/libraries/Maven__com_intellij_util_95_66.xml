@@ -4,6 +4,8 @@
       <root url="jar://C:/Program Files (x86)/JetBrains/IntelliJ IDEA Community Edition 9.0.2/lib/util.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/../../IntelliJ IDEA/idea/platform/util/src" />
+    </SOURCES>
   </library>
 </component>
