@@ -7,6 +7,7 @@ package net.orfjackal.sbt.runner;
 import org.junit.*;
 
 import java.io.*;
+import java.util.concurrent.*;
 
 import static org.junit.Assert.*;
 
@@ -15,9 +16,8 @@ public class ProcessRunnerTest {
     private ProcessRunner process;
 
     @Before
-    public void startProcess() throws IOException {
+    public void newProcess() throws IOException {
         process = new ProcessRunner(new File("."), "java", "-version");
-        process.start();
     }
 
     @After
@@ -29,40 +29,85 @@ public class ProcessRunnerTest {
 
     @Test
     public void waits_until_the_expected_output_is_printed() throws IOException {
-        assertTrue(process.waitForOutput("Runtime Environment"));
+        OutputReader output = process.subscribeToOutput();
+        process.start();
+
+        assertTrue(output.waitForOutput("Runtime Environment"));
     }
 
     @Test
     public void returns_false_if_the_expected_output_is_not_printed() throws IOException {
-        assertFalse(process.waitForOutput("will not be found"));
+        OutputReader output = process.subscribeToOutput();
+        process.start();
+
+        assertFalse(output.waitForOutput("will not be found"));
     }
 
     @Test
     public void continues_parsing_the_output_from_where_it_was_left() throws IOException {
-        assertTrue(process.waitForOutput("Runtime"));
-        assertTrue(process.waitForOutput(" Environment"));
+        OutputReader output = process.subscribeToOutput();
+        process.start();
+
+        assertTrue(output.waitForOutput("Runtime"));
+        assertTrue(output.waitForOutput(" Environment"));
     }
 
     @Test
     public void can_skip_buffered_output_without_processing_it() throws IOException {
-        assertTrue(process.waitForOutput("Runtime"));
-        process.skipBufferedOutput();
-        assertFalse(process.waitForOutput("Environment"));
+        OutputReader output = process.subscribeToOutput();
+        process.start();
+
+        assertTrue(output.waitForOutput("Runtime"));
+        output.skipBufferedOutput();
+        assertFalse(output.waitForOutput("Environment"));
     }
 
     @Test
-    public void an_output_listener_can_see_what_the_process_prints() throws IOException {
-        final StringBuilder listener = new StringBuilder();
-        process.setOutputListener(new OutputListener() {
-            public void append(char c) {
-                listener.append(c);
-            }
-        });
+    public void an_observer_can_see_what_the_process_prints_while_there_are_other_readers() throws IOException {
+        OutputReader observer = process.subscribeToOutput();
+        OutputReader otherReader = process.subscribeToOutput();
+        process.start();
 
-        process.waitForOutput("Environ");
-        process.skipBufferedOutput();
+        otherReader.waitForOutput("Environ");
+        otherReader.skipBufferedOutput();
 
-        String output = listener.toString();
+        String output = readFullyAsString(observer);
         assertTrue(output, output.contains("Runtime Environment"));
+    }
+
+    @Test
+    public void if_two_threads_wait_concurrently_then_both_of_them_will_read_the_same_output() throws Exception {
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        Future<Boolean> t1 = executor.submit(new WaitForOutput("Runtime", process.subscribeToOutput()));
+        Future<Boolean> t2 = executor.submit(new WaitForOutput("Runtime", process.subscribeToOutput()));
+        process.start();
+
+        assertTrue("Thread 1 did not read it", t1.get());
+        assertTrue("Thread 2 did not read it", t2.get());
+    }
+
+
+    private static String readFullyAsString(Reader source) throws IOException {
+        StringWriter result = new StringWriter();
+        char[] buf = new char[1024];
+        int len;
+        while ((len = source.read(buf)) != -1) {
+            result.write(buf, 0, len);
+        }
+        return result.toString();
+    }
+
+    private static class WaitForOutput implements Callable<Boolean> {
+        private final String expected;
+        private final OutputReader handle;
+
+        public WaitForOutput(String expected, OutputReader handle) {
+            this.expected = expected;
+            this.handle = handle;
+        }
+
+        public Boolean call() throws Exception {
+            return handle.waitForOutput(expected);
+        }
     }
 }

@@ -18,12 +18,8 @@ public class MulticastPipe extends Writer {
         return r;
     }
 
-    private void unsubscribeIfClosed(PipedWriter w, IOException e) throws IOException {
-        if (e.getMessage().equals("Pipe closed")) {
-            subscribers.remove(w);
-        } else {
-            throw e;
-        }
+    private void unsubscribe(PipedWriter w) throws IOException {
+        subscribers.remove(w);
     }
 
     public void write(char[] cbuf, int off, int len) throws IOException {
@@ -31,7 +27,8 @@ public class MulticastPipe extends Writer {
             try {
                 w.write(cbuf, off, len);
             } catch (IOException e) {
-                unsubscribeIfClosed(w, e);
+                e.printStackTrace();
+                unsubscribe(w);
             }
         }
     }
@@ -41,7 +38,8 @@ public class MulticastPipe extends Writer {
             try {
                 w.flush();
             } catch (IOException e) {
-                unsubscribeIfClosed(w, e);
+                e.printStackTrace();
+                unsubscribe(w);
             }
         }
     }
@@ -51,7 +49,8 @@ public class MulticastPipe extends Writer {
             try {
                 w.close();
             } catch (IOException e) {
-                unsubscribeIfClosed(w, e);
+                e.printStackTrace();
+                unsubscribe(w);
             }
         }
     }

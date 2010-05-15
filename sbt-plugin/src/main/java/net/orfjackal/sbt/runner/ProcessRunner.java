@@ -9,11 +9,10 @@ import java.io.*;
 public class ProcessRunner {
 
     private final ProcessBuilder builder;
-    private OutputListener listener = OutputListener.NULL_LISTENER;
 
     private Process process;
-    private InputStreamReader stdout;
-    private OutputStreamWriter stdin;
+    private final MulticastPipe outputMulticast = new MulticastPipe();
+    private Writer input;
 
     public ProcessRunner(File workingDir, String... command) {
         builder = new ProcessBuilder(command);
@@ -21,43 +20,28 @@ public class ProcessRunner {
         builder.redirectErrorStream(true);
     }
 
-    public void setOutputListener(OutputListener listener) {
-        this.listener = listener;
+    public OutputReader subscribeToOutput() throws IOException {
+        return new OutputReader(outputMulticast.subscribe());
     }
 
     public void start() throws IOException {
         process = builder.start();
-        stdout = new InputStreamReader(new BufferedInputStream(process.getInputStream()));
-        stdin = new OutputStreamWriter(new BufferedOutputStream(process.getOutputStream()));
+
+        InputStreamReader rawOutput = new InputStreamReader(new BufferedInputStream(process.getInputStream()));
+
+        Thread t = new Thread(new ReaderToWriterCopier(rawOutput, outputMulticast));
+        t.setDaemon(true);
+        t.start();
+
+        input = new OutputStreamWriter(new BufferedOutputStream(process.getOutputStream()));
     }
 
     public void destroy() {
         process.destroy();
     }
 
-    public boolean waitForOutput(String expected) throws IOException {
-        CyclicCharBuffer buffer = new CyclicCharBuffer(expected.length());
-        int ch;
-        while ((ch = stdout.read()) != -1) {
-            listener.append((char) ch);
-            buffer.append((char) ch);
-
-            if (buffer.contentEquals(expected)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public void skipBufferedOutput() throws IOException {
-        while (stdout.ready()) {
-            int ch = stdout.read();
-            listener.append((char) ch);
-        }
-    }
-
     public void writeInput(String s) throws IOException {
-        stdin.write(s);
-        stdin.flush();
+        input.write(s);
+        input.flush();
     }
 }
