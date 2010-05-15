@@ -10,6 +10,7 @@ import java.util.Scanner;
 public class SbtRunner {
 
     private static final String PROMPT = "\n> ";
+    private static final String PROMPT_AFTER_EMPTY_COMMAND = "> ";
 
     private final ProcessRunner sbt;
 
@@ -26,14 +27,16 @@ public class SbtRunner {
         };
     }
 
-    public void setOutputListener(OutputListener listener) {
-        sbt.setOutputListener(listener);
+    public OutputReader subscribeToOutput() throws IOException {
+        return sbt.subscribeToOutput();
     }
 
     public void start() throws IOException {
         // TODO: detect if the directory does not have a project
+        OutputReader out = sbt.subscribeToOutput();
         sbt.start();
-        sbt.waitForOutput(PROMPT);
+        out.waitForOutput(PROMPT);
+        out.close();
     }
 
     public void destroy() {
@@ -41,34 +44,45 @@ public class SbtRunner {
     }
 
     public void execute(String action) throws IOException {
-        sbt.skipBufferedOutput();
+        OutputReader out = sbt.subscribeToOutput();
         sbt.writeInput(action + "\n");
-        System.out.println("<wait>");
-        sbt.waitForOutput(PROMPT); // TODO: can hang when executing empty commands or ~ commands
-        System.out.println("</wait>");
-        sbt.skipBufferedOutput();
+
+        if (action.trim().isEmpty()) {
+            out.waitForOutput(PROMPT_AFTER_EMPTY_COMMAND);
+        } else {
+            out.waitForOutput(PROMPT);
+        }
+        out.close();
     }
 
     public static void main(String[] args) throws Exception {
         File launcherJar = new File(System.getProperty("user.home"), "bin/sbt-launch.jar");
         final SbtRunner sbt = new SbtRunner(new File("/tmp"), launcherJar);
 
-        sbt.setOutputListener(new OutputListener() {
-            public void append(char c) {
-                System.out.print(c);
+        final OutputReader output = sbt.subscribeToOutput();
+        sbt.start();
+
+        Thread printer = new Thread(new Runnable() {
+            public void run() {
+                try {
+                    int ch;
+                    while ((ch = output.read()) != -1) {
+                        System.out.print((char) ch);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
-        sbt.start();
+        printer.start();
 
         Scanner in = new Scanner(System.in);
         while (true) {
-            // TODO: figure out a reliable way to send commands
             final String action = in.nextLine();
 
             Thread t = new Thread(new Runnable() {
                 public void run() {
                     try {
-                        System.out.println("action = " + action);
                         sbt.execute(action);
                     } catch (IOException e) {
                         e.printStackTrace();

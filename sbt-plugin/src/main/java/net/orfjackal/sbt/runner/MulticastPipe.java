@@ -27,7 +27,6 @@ public class MulticastPipe extends Writer {
             try {
                 w.write(cbuf, off, len);
             } catch (IOException e) {
-                e.printStackTrace();
                 unsubscribe(w);
             }
         }
@@ -38,7 +37,6 @@ public class MulticastPipe extends Writer {
             try {
                 w.flush();
             } catch (IOException e) {
-                e.printStackTrace();
                 unsubscribe(w);
             }
         }
@@ -49,7 +47,6 @@ public class MulticastPipe extends Writer {
             try {
                 w.close();
             } catch (IOException e) {
-                e.printStackTrace();
                 unsubscribe(w);
             }
         }
