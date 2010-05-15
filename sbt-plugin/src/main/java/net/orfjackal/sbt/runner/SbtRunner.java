@@ -33,10 +33,10 @@ public class SbtRunner {
 
     public void start() throws IOException {
         // TODO: detect if the directory does not have a project
-        OutputReader out = sbt.subscribeToOutput();
+        OutputReader output = sbt.subscribeToOutput();
         sbt.start();
-        out.waitForOutput(PROMPT);
-        out.close();
+        output.waitForOutput(PROMPT);
+        output.close();
     }
 
     public void destroy() {
@@ -44,15 +44,15 @@ public class SbtRunner {
     }
 
     public void execute(String action) throws IOException {
-        OutputReader out = sbt.subscribeToOutput();
+        OutputReader output = sbt.subscribeToOutput();
         sbt.writeInput(action + "\n");
 
         if (action.trim().isEmpty()) {
-            out.waitForOutput(PROMPT_AFTER_EMPTY_COMMAND);
+            output.waitForOutput(PROMPT_AFTER_EMPTY_COMMAND);
         } else {
-            out.waitForOutput(PROMPT);
+            output.waitForOutput(PROMPT);
         }
-        out.close();
+        output.close();
     }
 
     public static void main(String[] args) throws Exception {

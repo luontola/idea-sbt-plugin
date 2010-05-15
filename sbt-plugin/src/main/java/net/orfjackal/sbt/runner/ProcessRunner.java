@@ -27,9 +27,8 @@ public class ProcessRunner {
     public void start() throws IOException {
         process = builder.start();
 
-        InputStreamReader rawOutput = new InputStreamReader(new BufferedInputStream(process.getInputStream()));
-
-        Thread t = new Thread(new ReaderToWriterCopier(rawOutput, outputMulticast));
+        InputStreamReader output = new InputStreamReader(new BufferedInputStream(process.getInputStream()));
+        Thread t = new Thread(new ReaderToWriterCopier(output, outputMulticast));
         t.setDaemon(true);
         t.start();
 

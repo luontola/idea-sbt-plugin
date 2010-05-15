@@ -18,7 +18,7 @@ public class MulticastPipe extends Writer {
         return r;
     }
 
-    private void unsubscribe(PipedWriter w) throws IOException {
+    private void unsubscribe(PipedWriter w) {
         subscribers.remove(w);
     }
 
