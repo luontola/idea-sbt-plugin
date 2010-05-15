@@ -9,6 +9,7 @@ import java.io.*;
 public class ProcessRunner {
 
     private final ProcessBuilder builder;
+    private OutputListener listener = OutputListener.NULL_LISTENER;
 
     private Process process;
     private InputStreamReader stdout;
@@ -18,6 +19,10 @@ public class ProcessRunner {
         builder = new ProcessBuilder(command);
         builder.directory(workingDir);
         builder.redirectErrorStream(true);
+    }
+
+    public void setOutputListener(OutputListener listener) {
+        this.listener = listener;
     }
 
     public void start() throws IOException {
@@ -34,7 +39,9 @@ public class ProcessRunner {
         CyclicCharBuffer buffer = new CyclicCharBuffer(expected.length());
         int ch;
         while ((ch = stdout.read()) != -1) {
+            listener.append((char) ch);
             buffer.append((char) ch);
+
             if (buffer.contentEquals(expected)) {
                 return true;
             }
@@ -44,7 +51,8 @@ public class ProcessRunner {
 
     public void skipBufferedOutput() throws IOException {
         while (stdout.ready()) {
-            stdout.skip(1);
+            int ch = stdout.read();
+            listener.append((char) ch);
         }
     }
 

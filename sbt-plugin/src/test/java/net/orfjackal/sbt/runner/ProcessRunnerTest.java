@@ -49,4 +49,20 @@ public class ProcessRunnerTest {
         process.skipBufferedOutput();
         assertFalse(process.waitForOutput("Environment"));
     }
+
+    @Test
+    public void an_output_listener_can_see_what_the_process_prints() throws IOException {
+        final StringBuilder listener = new StringBuilder();
+        process.setOutputListener(new OutputListener() {
+            public void append(char c) {
+                listener.append(c);
+            }
+        });
+
+        process.waitForOutput("Environ");
+        process.skipBufferedOutput();
+
+        String output = listener.toString();
+        assertTrue(output, output.contains("Runtime Environment"));
+    }
 }
