@@ -30,7 +30,7 @@ public class CyclicCharBuffer {
         if (isFull()) {
             removeFirst();
         }
-        addLast(c);
+        insertLast(c);
     }
 
     private boolean isFull() {
@@ -42,17 +42,17 @@ public class CyclicCharBuffer {
         length--;
     }
 
-    private void addLast(char c) {
+    private void insertLast(char c) {
         buffer[index(length)] = c;
         length++;
     }
 
-    public boolean contentEquals(String s) {
-        if (s.length() != length()) {
+    public boolean contentEquals(String that) {
+        if (this.length() != that.length()) {
             return false;
         }
         for (int i = 0; i < length(); i++) {
-            if (s.charAt(i) != charAt(i)) {
+            if (this.charAt(i) != that.charAt(i)) {
                 return false;
             }
         }

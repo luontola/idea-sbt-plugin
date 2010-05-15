@@ -9,7 +9,6 @@ import java.io.*;
 public class ProcessRunner {
 
     private final ProcessBuilder builder;
-
     private Process process;
     private final MulticastPipe outputMulticast = new MulticastPipe();
     private Writer input;

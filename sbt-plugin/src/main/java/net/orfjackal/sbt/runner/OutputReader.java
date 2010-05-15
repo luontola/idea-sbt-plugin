@@ -8,6 +8,9 @@ import java.io.*;
 
 public class OutputReader extends FilterReader {
 
+    public static final boolean FOUND = true;
+    public static final boolean END_OF_OUTPUT = false;
+
     public OutputReader(Reader output) {
         super(output);
     }
@@ -19,10 +22,10 @@ public class OutputReader extends FilterReader {
             buffer.append((char) ch);
 
             if (buffer.contentEquals(expected)) {
-                return true;
+                return FOUND;
             }
         }
-        return false;
+        return END_OF_OUTPUT;
     }
 
     public void skipBufferedOutput() throws IOException {

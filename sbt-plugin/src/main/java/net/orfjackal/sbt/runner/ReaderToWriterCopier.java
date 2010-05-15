@@ -7,6 +7,7 @@ package net.orfjackal.sbt.runner;
 import java.io.*;
 
 public class ReaderToWriterCopier implements Runnable {
+
     private final Reader source;
     private final Writer target;
 

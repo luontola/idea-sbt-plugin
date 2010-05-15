@@ -20,6 +20,7 @@ public class SbtRunner {
     private static String[] getCommand(File launcherJar) {
         return new String[]{
                 "java",
+                "-Xmx512M",
                 "-Dsbt.log.noformat=true",
                 "-Djline.terminal=jline.UnsupportedTerminal",
                 "-jar", launcherJar.getAbsolutePath()
