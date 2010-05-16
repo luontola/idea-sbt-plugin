@@ -48,7 +48,7 @@ public class SbtRunner {
         OutputReader output = sbt.subscribeToOutput();
         sbt.writeInput(action + "\n");
 
-        if (action.trim().isEmpty()) {
+        if (action.trim().equals("")) {
             output.waitForOutput(PROMPT_AFTER_EMPTY_ACTION);
         } else {
             output.waitForOutput(PROMPT);
