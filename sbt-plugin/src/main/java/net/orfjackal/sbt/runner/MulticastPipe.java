@@ -10,10 +10,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class MulticastPipe extends Writer {
 
+    // TODO: PipedReader lags with the default 1024 size buffer, when seeing sbt's "actions" or "help"
+    // Would some other data structure have better latency?
+    private static final int PIPE_BUFFER_SIZE = 8 * 1024;
+
     private final List<PipedWriter> subscribers = new CopyOnWriteArrayList<PipedWriter>();
 
     public Reader subscribe() throws IOException {
-        PipedReader r = new PipedReader();
+        PipedReader r = new PipedReader(PIPE_BUFFER_SIZE);
         subscribers.add(new PipedWriter(r));
         return r;
     }
