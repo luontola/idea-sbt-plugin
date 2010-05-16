@@ -35,6 +35,7 @@ public class SbtRunner {
         // TODO: detect if the directory does not have a project
         OutputReader output = sbt.subscribeToOutput();
         sbt.start();
+        sbt.destroyOnShutdown();
         output.waitForOutput(PROMPT);
         output.close();
     }

@@ -9,7 +9,9 @@ import java.io.*;
 public class ProcessRunner {
 
     private final ProcessBuilder builder;
+
     private Process process;
+    private Thread shutdownHook;
     private final MulticastPipe outputMulticast = new MulticastPipe();
     private Writer input;
 
@@ -25,6 +27,7 @@ public class ProcessRunner {
 
     public void start() throws IOException {
         process = builder.start();
+        shutdownHook = new Thread(new DestroyProcessRunner(process));
 
         InputStreamReader output = new InputStreamReader(new BufferedInputStream(process.getInputStream()));
         Thread t = new Thread(new ReaderToWriterCopier(output, outputMulticast));
@@ -34,12 +37,30 @@ public class ProcessRunner {
         input = new OutputStreamWriter(new BufferedOutputStream(process.getOutputStream()));
     }
 
+    public void destroyOnShutdown() {
+        Runtime.getRuntime().addShutdownHook(shutdownHook);
+    }
+
     public void destroy() {
         process.destroy();
+        Runtime.getRuntime().removeShutdownHook(shutdownHook);
     }
 
     public void writeInput(String s) throws IOException {
         input.write(s);
         input.flush();
+    }
+
+
+    private static class DestroyProcessRunner implements Runnable {
+        private final Process process;
+
+        public DestroyProcessRunner(Process process) {
+            this.process = process;
+        }
+
+        public void run() {
+            process.destroy();
+        }
     }
 }

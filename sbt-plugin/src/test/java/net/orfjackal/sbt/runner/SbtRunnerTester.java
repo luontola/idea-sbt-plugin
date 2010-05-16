@@ -34,6 +34,9 @@ public class SbtRunnerTester {
         Scanner in = new Scanner(source);
         while (true) {
             String action = in.nextLine();
+            if (action.equals("force-exit")) {
+                System.exit(1);
+            }
             executeAsynchronously(action);
         }
     }
