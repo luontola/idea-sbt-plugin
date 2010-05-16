@@ -10,16 +10,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class MulticastPipe extends Writer {
 
-    // TODO: PipedReader lags with the default 1024 size buffer, when seeing sbt's "actions" or "help"
-    // Would some other data structure have better latency?
-    // Profiling shows that java.io.PipedReader.read() waits randomly for one second (at other times it's quick).
-    // Based on PipedReader's source code it does that when the buffer is empty.
-    private static final int PIPE_BUFFER_SIZE = 8 * 1024;
-
     private final List<PipedWriter> subscribers = new CopyOnWriteArrayList<PipedWriter>();
 
     public Reader subscribe() throws IOException {
-        PipedReader r = new PipedReader(PIPE_BUFFER_SIZE);
+        PipedReader r = new PipedReader();
         subscribers.add(new PipedWriter(r));
         return r;
     }
@@ -32,6 +26,7 @@ public class MulticastPipe extends Writer {
         for (PipedWriter w : subscribers) {
             try {
                 w.write(cbuf, off, len);
+                w.flush();
             } catch (IOException e) {
                 unsubscribe(w);
             }
