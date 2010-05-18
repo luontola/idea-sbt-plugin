@@ -26,12 +26,15 @@
         <stepsBeforeRunProvider implementation="net.orfjackal.sbt.plugin.SbtBeforeRunTaskProvider"/>
     </extensions>
 
-    <!--
     <project-components>
+        <component>
+            <implementation-class>net.orfjackal.sbt.plugin.SbtRunnerComponent</implementation-class>
+        </component>
+        <!--
         <component>
             <implementation-class>net.orfjackal.sbt.plugin.ProjectSettingsComponent</implementation-class>
         </component>
+        -->
     </project-components>
-    -->
 
 </idea-plugin>

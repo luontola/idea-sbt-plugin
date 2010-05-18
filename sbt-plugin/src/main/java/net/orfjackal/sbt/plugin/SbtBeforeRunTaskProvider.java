@@ -8,14 +8,18 @@ import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.*;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.util.concurrency.Semaphore;
 
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRunTask> {
+
+    private static final Logger LOG = Logger.getInstance(SbtBeforeRunTaskProvider.class.getName());
 
     private static final Key<SbtBeforeRunTask> TASK_ID = Key.create("SBT.BeforeRunTask");
     private final Project project;
@@ -61,39 +65,42 @@ public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRun
             return false;
         }
 
-        final CompletionSignal signal = new CompletionSignal();
+        CompletionSignal signal = new CompletionSignal();
         try {
-            ApplicationManager.getApplication().invokeAndWait(new Runnable() {
-                public void run() {
-                    executeInBackground(action, signal);
-                }
-            }, ModalityState.NON_MODAL);
+            executeInBackground(action, signal);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error(e);
             return false;
         }
         return signal.waitForResult();
     }
 
-    private void executeInBackground(String action, final CompletionSignal signal) {
+    private void executeInBackground(final String action, final CompletionSignal signal) {
         signal.begin();
-        new Task.Backgroundable(project, MessageBundle.message("sbt.tasks.executing"), false) {
+
+        final Task.Backgroundable task = new Task.Backgroundable(project, MessageBundle.message("sbt.tasks.executing"), false) {
             public void run(ProgressIndicator indicator) {
                 try {
-
-                    // TODO: send command and wait until done
-                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    LOG.info("Begin executing: " + action);
+                    SbtRunnerComponent sbt = SbtRunnerComponent.getInstance(myProject);
+                    sbt.executeAndWait(action);
+                    LOG.info("Done executing: " + action);
 
                     signal.success();
+                } catch (IOException e) {
+                    LOG.error("Failed to execute action: " + action, e);
+                    throw new RuntimeException("Failed to execute action: " + action, e);
                 } finally {
                     signal.finished();
                 }
             }
-        }.queue();
+        };
+
+        ApplicationManager.getApplication().invokeAndWait(new Runnable() {
+            public void run() {
+                task.queue();
+            }
+        }, ModalityState.NON_MODAL);
     }
 
     private static class CompletionSignal {
@@ -101,7 +108,7 @@ public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRun
         private final AtomicBoolean result = new AtomicBoolean(false);
 
         public void begin() {
-            done.up();
+            done.down();
         }
 
         public void success() {
@@ -109,7 +116,7 @@ public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRun
         }
 
         public void finished() {
-            done.down();
+            done.up();
         }
 
         public boolean waitForResult() {
