@@ -27,6 +27,14 @@
 
         <dependency>
             <groupId>com.intellij</groupId>
+            <artifactId>extensions</artifactId>
+            <version>${idea.version}</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/extensions.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>com.intellij</groupId>
             <artifactId>jdom</artifactId>
             <version>${idea.version}</version>
             <scope>system</scope>
