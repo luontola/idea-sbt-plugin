@@ -8,6 +8,7 @@ import com.intellij.openapi.application.*;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.progress.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import net.orfjackal.sbt.runner.*;
@@ -39,6 +40,43 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Pers
         this.settings = settings;
     }
 
+    public CompletionSignal executeInBackground(final String action) {
+        final CompletionSignal signal = new CompletionSignal();
+        signal.begin();
+
+        queue(new Task.Backgroundable(myProject, MessageBundle.message("sbt.tasks.executing"), false) {
+            public void run(ProgressIndicator indicator) {
+                try {
+                    LOG.info("Begin executing: " + action);
+                    executeAndWait(action);
+                    LOG.info("Done executing: " + action);
+
+                    // TODO: detect if there was a compile error or similar failure, so that the following task would not be started
+
+                    signal.success();
+                } catch (IOException e) {
+                    LOG.error("Failed to execute action \"" + action + "\". Maybe SBT was closed?", e);
+                } finally {
+                    signal.finished();
+                }
+            }
+        });
+
+        return signal;
+    }
+
+    private void queue(final Task.Backgroundable task) {
+        if (ApplicationManager.getApplication().isDispatchThread()) {
+            task.queue();
+        } else {
+            ApplicationManager.getApplication().invokeAndWait(new Runnable() {
+                public void run() {
+                    task.queue();
+                }
+            }, ModalityState.NON_MODAL);
+        }
+    }
+
     public void executeAndWait(String action) throws IOException {
         saveAllDocuments();
         startIfNotStarted();
@@ -53,7 +91,6 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Pers
             // TODO: synchronize changes to file system
 
         } catch (IOException e) {
-            LOG.error("Failed to execute action: " + action, e);
             destroyProcess();
             throw e;
         }
@@ -68,10 +105,10 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Pers
     }
 
     private void startIfNotStarted() throws IOException {
-        if (sbt == null) {
+        if (sbt == null || !sbt.isAlive()) {
             sbt = new SbtRunner(projectDir(), launcherJar());
             printToMessageWindow();
-            printToLogFile();
+//            printToLogFile();
             sbt.start();
         }
     }
@@ -83,13 +120,14 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Pers
     }
 
     private File launcherJar() {
+        // TODO: make this configurable
         return new File(System.getProperty("user.home"), "bin/sbt-launch.jar");
     }
 
     private void printToMessageWindow() {
         // org.jetbrains.idea.maven.execution.MavenExecutor#myConsole
         SbtConsole console = new SbtConsole(MessageBundle.message("sbt.tasks.action"), myProject);
-        SbtProcessHandler process = new SbtProcessHandler(sbt);
+        SbtProcessHandler process = new SbtProcessHandler(this, sbt.subscribeToOutput());
         console.attachToProcess(process);
         process.startNotify();
     }
@@ -108,7 +146,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Pers
         t.start();
     }
 
-    private void destroyProcess() {
+    public void destroyProcess() {
         if (sbt != null) {
             sbt.destroy();
             sbt = null;

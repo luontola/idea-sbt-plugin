@@ -43,7 +43,21 @@ public class ProcessRunner {
 
     public void destroy() {
         process.destroy();
+        try {
+            process.waitFor();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         Runtime.getRuntime().removeShutdownHook(shutdownHook);
+    }
+
+    public boolean isAlive() {
+        try {
+            process.exitValue();
+            return false;
+        } catch (IllegalThreadStateException e) {
+            return true;
+        }
     }
 
     public void writeInput(String s) throws IOException {

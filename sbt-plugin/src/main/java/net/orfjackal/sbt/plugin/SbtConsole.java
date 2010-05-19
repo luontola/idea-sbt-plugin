@@ -63,6 +63,10 @@ public class SbtConsole {
             public void onTextAvailable(ProcessEvent event, Key outputType) {
                 ensureAttachedToToolWindow();
             }
+
+            public void processTerminated(ProcessEvent event) {
+                finish();
+            }
         });
     }
 

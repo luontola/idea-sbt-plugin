@@ -28,6 +28,14 @@ public class ProcessRunnerTest {
     }
 
     @Test
+    public void is_alive_until_it_is_destroyed() throws IOException {
+        process.start();
+        assertTrue("alive", process.isAlive());
+        process.destroy();
+        assertFalse("alive", process.isAlive());
+    }
+
+    @Test
     public void waits_until_the_expected_output_is_printed() throws IOException {
         OutputReader output = process.subscribeToOutput();
         process.start();

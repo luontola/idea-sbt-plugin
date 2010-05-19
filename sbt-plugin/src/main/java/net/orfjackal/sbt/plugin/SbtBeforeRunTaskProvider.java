@@ -7,15 +7,9 @@ package net.orfjackal.sbt.plugin;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.application.*;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.util.concurrency.Semaphore;
-
-import java.io.IOException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRunTask> {
 
@@ -65,65 +59,13 @@ public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRun
             return false;
         }
 
-        CompletionSignal signal = new CompletionSignal();
         try {
-            executeInBackground(action, signal);
+            return SbtRunnerComponent.getInstance(project)
+                    .executeInBackground(action)
+                    .waitForResult();
         } catch (Exception e) {
             LOG.error(e);
             return false;
-        }
-        return signal.waitForResult();
-    }
-
-    private void executeInBackground(final String action, final CompletionSignal signal) {
-        signal.begin();
-
-        final Task.Backgroundable task = new Task.Backgroundable(project, MessageBundle.message("sbt.tasks.executing"), false) {
-            public void run(ProgressIndicator indicator) {
-                try {
-                    LOG.info("Begin executing: " + action);
-                    SbtRunnerComponent sbt = SbtRunnerComponent.getInstance(myProject);
-                    sbt.executeAndWait(action);
-                    LOG.info("Done executing: " + action);
-
-                    // TODO: detect if there was a compile error or similar failure, so that the following task would not be started
-
-                    signal.success();
-                } catch (IOException e) {
-                    LOG.error("Failed to execute action: " + action, e);
-                    throw new RuntimeException("Failed to execute action: " + action, e);
-                } finally {
-                    signal.finished();
-                }
-            }
-        };
-
-        ApplicationManager.getApplication().invokeAndWait(new Runnable() {
-            public void run() {
-                task.queue();
-            }
-        }, ModalityState.NON_MODAL);
-    }
-
-    private static class CompletionSignal {
-        private final Semaphore done = new Semaphore();
-        private final AtomicBoolean result = new AtomicBoolean(false);
-
-        public void begin() {
-            done.down();
-        }
-
-        public void success() {
-            result.set(true);
-        }
-
-        public void finished() {
-            done.up();
-        }
-
-        public boolean waitForResult() {
-            done.waitFor();
-            return result.get();
         }
     }
 }

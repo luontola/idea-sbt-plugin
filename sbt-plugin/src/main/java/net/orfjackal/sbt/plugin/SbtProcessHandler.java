@@ -6,7 +6,7 @@ package net.orfjackal.sbt.plugin;
 
 import com.intellij.execution.process.*;
 import com.intellij.openapi.diagnostic.Logger;
-import net.orfjackal.sbt.runner.*;
+import net.orfjackal.sbt.runner.OutputReader;
 
 import java.io.*;
 
@@ -14,12 +14,12 @@ public class SbtProcessHandler extends ProcessHandler {
 
     private static final Logger LOG = Logger.getInstance(SbtProcessHandler.class.getName());
 
-    private final SbtRunner sbt;
+    private final SbtRunnerComponent sbt;
     private final OutputReader output;
 
-    public SbtProcessHandler(SbtRunner sbt) {
+    public SbtProcessHandler(SbtRunnerComponent sbt, OutputReader output) {
         this.sbt = sbt;
-        this.output = sbt.subscribeToOutput();
+        this.output = output;
     }
 
     public void startNotify() {
@@ -36,8 +36,12 @@ public class SbtProcessHandler extends ProcessHandler {
         super.startNotify();
     }
 
+    public OutputStream getProcessInput() {
+        return new ExecuteUserEnteredActions(sbt);
+    }
+
     protected void destroyProcessImpl() {
-        sbt.destroy();
+        sbt.destroyProcess();
     }
 
     protected void detachProcessImpl() {
@@ -48,37 +52,53 @@ public class SbtProcessHandler extends ProcessHandler {
         return false;
     }
 
-    public OutputStream getProcessInput() {
-        // TODO: how to allow sending input?
-        return new OutputStream() {
-            public void write(int b) {
-                LOG.info("write: " + (char) b + "\t(" + b + ")");
-                // do not allow sending commands through this
-            }
-        };
-    }
-
 
     private static class NotifyWhenTextAvailable implements Runnable {
-        private final ProcessHandler processHandler;
+        private final SbtProcessHandler process;
         private final Reader output;
 
-        public NotifyWhenTextAvailable(ProcessHandler processHandler, Reader output) {
-            this.processHandler = processHandler;
+        public NotifyWhenTextAvailable(SbtProcessHandler process, Reader output) {
+            this.process = process;
             this.output = output;
         }
 
         public void run() {
             try {
-                char[] cbuf = new char[1024];
+                char[] cbuf = new char[100];
                 int len;
                 while ((len = output.read(cbuf)) != -1) {
                     String text = new String(cbuf, 0, len);
-                    processHandler.notifyTextAvailable(text, ProcessOutputTypes.STDOUT);
+                    process.notifyTextAvailable(text, ProcessOutputTypes.STDOUT);
                 }
             } catch (IOException e) {
                 LOG.error(e);
+            } finally {
+                process.notifyProcessTerminated(0);
             }
+        }
+    }
+
+    private static class ExecuteUserEnteredActions extends OutputStream {
+        private final SbtRunnerComponent sbt;
+        private final StringBuilder commandBuffer = new StringBuilder();
+
+        public ExecuteUserEnteredActions(SbtRunnerComponent sbt) {
+            this.sbt = sbt;
+        }
+
+        public void write(int b) {
+            char ch = (char) b;
+            if (ch == '\n') {
+                sbt.executeInBackground(buildCommand());
+            } else {
+                commandBuffer.append(ch);
+            }
+        }
+
+        private String buildCommand() {
+            String command = commandBuffer.toString().trim();
+            commandBuffer.setLength(0);
+            return command;
         }
     }
 }

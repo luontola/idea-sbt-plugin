@@ -44,6 +44,10 @@ public class SbtRunner {
         sbt.destroy();
     }
 
+    public boolean isAlive() {
+        return sbt.isAlive();
+    }
+
     public void execute(String action) throws IOException {
         OutputReader output = sbt.subscribeToOutput();
         sbt.writeInput(action + "\n");
