@@ -42,14 +42,21 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Pers
     public void executeAndWait(String action) throws IOException {
         saveAllDocuments();
         startIfNotStarted();
-        sbt.execute(action);
+        try {
+            sbt.execute(action);
 
-        // TODO: update target folders
-        // org.jetbrains.idea.maven.project.MavenProjectsManager#updateProjectFolders
-        // org.jetbrains.idea.maven.execution.MavenRunner#runBatch
-        // org.jetbrains.idea.maven.execution.MavenRunner#updateTargetFolders
+            // TODO: update target folders
+            // org.jetbrains.idea.maven.project.MavenProjectsManager#updateProjectFolders
+            // org.jetbrains.idea.maven.execution.MavenRunner#runBatch
+            // org.jetbrains.idea.maven.execution.MavenRunner#updateTargetFolders
 
-        // TODO: synchronize changes to file system
+            // TODO: synchronize changes to file system
+
+        } catch (IOException e) {
+            LOG.error("Failed to execute action: " + action, e);
+            destroyProcess();
+            throw e;
+        }
     }
 
     private static void saveAllDocuments() {
@@ -61,24 +68,10 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Pers
     }
 
     private void startIfNotStarted() throws IOException {
-        // TODO: detect SBT process which has exited
         if (sbt == null) {
             sbt = new SbtRunner(projectDir(), launcherJar());
-
-            // TODO: print to message window
-            // org.jetbrains.idea.maven.execution.MavenExecutor#myConsole
-            final OutputReader out = sbt.subscribeToOutput();
-            Thread t = new Thread(new Runnable() {
-                public void run() {
-                    Scanner scanner = new Scanner(out);
-                    while (scanner.hasNextLine()) {
-                        LOG.info(scanner.nextLine());
-                    }
-                }
-            });
-            t.setDaemon(true);
-            t.start();
-
+            printToMessageWindow();
+            printToLogFile();
             sbt.start();
         }
     }
@@ -91,5 +84,34 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Pers
 
     private File launcherJar() {
         return new File(System.getProperty("user.home"), "bin/sbt-launch.jar");
+    }
+
+    private void printToMessageWindow() {
+        // org.jetbrains.idea.maven.execution.MavenExecutor#myConsole
+        SbtConsole console = new SbtConsole(MessageBundle.message("sbt.tasks.action"), myProject);
+        SbtProcessHandler process = new SbtProcessHandler(sbt);
+        console.attachToProcess(process);
+        process.startNotify();
+    }
+
+    private void printToLogFile() {
+        final OutputReader output = sbt.subscribeToOutput();
+        Thread t = new Thread(new Runnable() {
+            public void run() {
+                Scanner scanner = new Scanner(output);
+                while (scanner.hasNextLine()) {
+                    LOG.info(scanner.nextLine());
+                }
+            }
+        });
+        t.setDaemon(true);
+        t.start();
+    }
+
+    private void destroyProcess() {
+        if (sbt != null) {
+            sbt.destroy();
+            sbt = null;
+        }
     }
 }

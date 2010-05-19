@@ -86,6 +86,8 @@ public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRun
                     sbt.executeAndWait(action);
                     LOG.info("Done executing: " + action);
 
+                    // TODO: detect if there was a compile error or similar failure, so that the following task would not be started
+
                     signal.success();
                 } catch (IOException e) {
                     LOG.error("Failed to execute action: " + action, e);
