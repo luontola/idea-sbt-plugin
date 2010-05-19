@@ -12,10 +12,14 @@ public class MulticastPipe extends Writer {
 
     private final List<PipedWriter> subscribers = new CopyOnWriteArrayList<PipedWriter>();
 
-    public Reader subscribe() throws IOException {
-        PipedReader r = new PipedReader();
-        subscribers.add(new PipedWriter(r));
-        return r;
+    public Reader subscribe() {
+        try {
+            PipedReader r = new PipedReader();
+            subscribers.add(new PipedWriter(r));
+            return r;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void unsubscribe(PipedWriter w) {

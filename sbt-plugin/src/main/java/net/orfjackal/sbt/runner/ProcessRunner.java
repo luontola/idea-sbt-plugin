@@ -21,7 +21,7 @@ public class ProcessRunner {
         builder.redirectErrorStream(true);
     }
 
-    public OutputReader subscribeToOutput() throws IOException {
+    public OutputReader subscribeToOutput() {
         return new OutputReader(outputMulticast.subscribe());
     }
 

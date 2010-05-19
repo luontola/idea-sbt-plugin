@@ -27,7 +27,7 @@ public class SbtRunner {
         };
     }
 
-    public OutputReader subscribeToOutput() throws IOException {
+    public OutputReader subscribeToOutput() {
         return sbt.subscribeToOutput();
     }
 
