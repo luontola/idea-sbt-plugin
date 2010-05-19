@@ -35,6 +35,14 @@
 
         <dependency>
             <groupId>com.intellij</groupId>
+            <artifactId>idea</artifactId>
+            <version>${idea.version}</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/idea.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>com.intellij</groupId>
             <artifactId>jdom</artifactId>
             <version>${idea.version}</version>
             <scope>system</scope>
