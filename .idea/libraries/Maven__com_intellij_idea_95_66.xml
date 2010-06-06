@@ -6,6 +6,8 @@
     <JAVADOC />
     <SOURCES>
       <root url="file://$PROJECT_DIR$/../../IntelliJ IDEA/idea/platform/platform-impl/src" />
+      <root url="file://$PROJECT_DIR$/../../IntelliJ IDEA/idea/platform/lang-impl/src" />
+      <root url="file://$PROJECT_DIR$/../../IntelliJ IDEA/idea/java/java-impl/src" />
     </SOURCES>
   </library>
 </component>
