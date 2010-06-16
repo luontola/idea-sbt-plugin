@@ -14,6 +14,12 @@ public class SbtRunner {
     private final ProcessRunner sbt;
 
     public SbtRunner(File workingDir, File launcherJar) {
+        if (!workingDir.isDirectory()) {
+            throw new IllegalArgumentException("Working directory does not exist: " + workingDir);
+        }
+        if (!launcherJar.isFile()) {
+            throw new IllegalArgumentException("Launcher JAR file does not exist: " + launcherJar);
+        }
         sbt = new ProcessRunner(workingDir, getCommand(launcherJar));
     }
 

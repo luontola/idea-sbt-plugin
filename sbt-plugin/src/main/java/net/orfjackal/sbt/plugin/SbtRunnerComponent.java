@@ -5,7 +5,7 @@
 package net.orfjackal.sbt.plugin;
 
 import com.intellij.openapi.application.*;
-import com.intellij.openapi.components.*;
+import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.*;
@@ -13,33 +13,31 @@ import com.intellij.openapi.progress.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.vfs.VirtualFile;
+import net.orfjackal.sbt.plugin.settings.*;
 import net.orfjackal.sbt.runner.*;
 
 import java.io.*;
 import java.util.*;
 
-@State(name = "SbtRunner", storages = {@Storage(id = "default", file = "$WORKSPACE_FILE$")})
-public class SbtRunnerComponent extends AbstractProjectComponent implements PersistentStateComponent<SbtRunnerSettings> {
+public class SbtRunnerComponent extends AbstractProjectComponent {
 
-    private static final Logger LOG = Logger.getInstance(SbtRunnerComponent.class.getName());
+    private static final Logger logger = Logger.getInstance(SbtRunnerComponent.class.getName());
+    private static final boolean DEBUG = false;
 
-    private SbtRunnerSettings settings;
     private SbtRunner sbt;
+    private final SbtProjectSettingsComponent projectSettings;
+    private final SbtApplicationSettingsComponent applicationSettings;
 
     public static SbtRunnerComponent getInstance(Project project) {
         return project.getComponent(SbtRunnerComponent.class);
     }
 
-    protected SbtRunnerComponent(Project project) {
+    protected SbtRunnerComponent(Project project,
+                                 SbtProjectSettingsComponent projectSettings,
+                                 SbtApplicationSettingsComponent applicationSettings) {
         super(project);
-    }
-
-    public SbtRunnerSettings getState() {
-        return settings;
-    }
-
-    public void loadState(SbtRunnerSettings settings) {
-        this.settings = settings;
+        this.projectSettings = projectSettings;
+        this.applicationSettings = applicationSettings;
     }
 
     public CompletionSignal executeInBackground(final String action) {
@@ -49,15 +47,15 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Pers
         queue(new Task.Backgroundable(myProject, MessageBundle.message("sbt.tasks.executing"), false) {
             public void run(ProgressIndicator indicator) {
                 try {
-                    LOG.info("Begin executing: " + action);
+                    logger.info("Begin executing: " + action);
                     executeAndWait(action);
-                    LOG.info("Done executing: " + action);
+                    logger.info("Done executing: " + action);
 
                     // TODO: detect if there was a compile error or similar failure, so that the following task would not be started
 
                     signal.success();
                 } catch (IOException e) {
-                    LOG.error("Failed to execute action \"" + action + "\". Maybe SBT was closed?", e);
+                    logger.error("Failed to execute action \"" + action + "\". Maybe SBT failed to start?", e);
                 } finally {
                     signal.finished();
                 }
@@ -97,8 +95,9 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Pers
             throw e;
         }
 
-        // TODO: check settings whether using SBT output folders is enabled
-        configOutputFolders();
+        if (projectSettings.getState().isUseSbtOutputDirs()) {
+            configureOutputDirs();
+        }
     }
 
     private static void saveAllDocuments() {
@@ -113,7 +112,9 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Pers
         if (sbt == null || !sbt.isAlive()) {
             sbt = new SbtRunner(projectDir(), launcherJar());
             printToMessageWindow();
-//            printToLogFile();
+            if (DEBUG) {
+                printToLogFile();
+            }
             sbt.start();
         }
     }
@@ -125,8 +126,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Pers
     }
 
     private File launcherJar() {
-        // TODO: make this configurable
-        return new File(System.getProperty("user.home"), "bin/sbt-launch.jar");
+        return new File(applicationSettings.getState().getSbtLauncherJarPath());
     }
 
     private void printToMessageWindow() {
@@ -143,7 +143,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Pers
             public void run() {
                 Scanner scanner = new Scanner(output);
                 while (scanner.hasNextLine()) {
-                    LOG.info(scanner.nextLine());
+                    logger.info(scanner.nextLine());
                 }
             }
         });
@@ -151,7 +151,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Pers
         t.start();
     }
 
-    private void configOutputFolders() {
+    private void configureOutputDirs() {
         // org.jetbrains.idea.maven.importing.MavenFoldersImporter#configOutputFolders
         String scalaVersion = getScalaVersion();
 

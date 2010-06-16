@@ -12,7 +12,7 @@ import java.io.*;
 
 public class SbtProcessHandler extends ProcessHandler {
 
-    private static final Logger LOG = Logger.getInstance(SbtProcessHandler.class.getName());
+    private static final Logger logger = Logger.getInstance(SbtProcessHandler.class.getName());
 
     private final SbtRunnerComponent sbt;
     private final OutputReader output;
@@ -71,7 +71,7 @@ public class SbtProcessHandler extends ProcessHandler {
                     process.notifyTextAvailable(text, ProcessOutputTypes.STDOUT);
                 }
             } catch (IOException e) {
-                LOG.error(e);
+                logger.error(e);
             } finally {
                 process.notifyProcessTerminated(0);
             }

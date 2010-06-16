@@ -13,7 +13,7 @@ import com.intellij.openapi.util.Key;
 
 public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRunTask> {
 
-    private static final Logger LOG = Logger.getInstance(SbtBeforeRunTaskProvider.class.getName());
+    private static final Logger logger = Logger.getInstance(SbtBeforeRunTaskProvider.class.getName());
 
     private static final Key<SbtBeforeRunTask> TASK_ID = Key.create("SBT.BeforeRunTask");
     private final Project project;
@@ -64,7 +64,7 @@ public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRun
                     .executeInBackground(action)
                     .waitForResult();
         } catch (Exception e) {
-            LOG.error(e);
+            logger.error(e);
             return false;
         }
     }

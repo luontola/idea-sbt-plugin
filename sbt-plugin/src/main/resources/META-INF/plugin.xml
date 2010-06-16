@@ -24,17 +24,22 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <stepsBeforeRunProvider implementation="net.orfjackal.sbt.plugin.SbtBeforeRunTaskProvider"/>
+        <projectConfigurable implementation="net.orfjackal.sbt.plugin.settings.SbtConfigurable" order="last"/>
     </extensions>
 
     <project-components>
         <component>
             <implementation-class>net.orfjackal.sbt.plugin.SbtRunnerComponent</implementation-class>
         </component>
-        <!--
         <component>
-            <implementation-class>net.orfjackal.sbt.plugin.ProjectSettingsComponent</implementation-class>
+            <implementation-class>net.orfjackal.sbt.plugin.settings.SbtProjectSettingsComponent</implementation-class>
         </component>
-        -->
     </project-components>
+
+    <application-components>
+        <component>
+            <implementation-class>net.orfjackal.sbt.plugin.settings.SbtApplicationSettingsComponent</implementation-class>
+        </component>
+    </application-components>
 
 </idea-plugin>
