@@ -4,22 +4,35 @@
     <id>${plugin.id}</id>
     <name>${plugin.name}</name>
     <version>${project.version}</version>
-
-    <description>Integrates with Simple Build Tool (SBT) to enable building Scala projects easily and quickly.
-    </description>
+    <idea-version since-build="95.66"/>
     <category>Build</category>
 
     <vendor url="http://www.orfjackal.net">Esko Luontola</vendor>
 
-    <idea-version since-build="95.66"/>
+    <description><![CDATA[
+        Integrates with Simple Build Tool (SBT) to enable building Scala projects easily and quickly.
 
+        <ol>
+        <dt><b>Quick Start</b></dt>
+        <li>Check that "Settings / SBT" has the right "sbt-launch.jar" file configured</li>
+        <li>Go to the "Before launch" options of a Run Configuration, uncheck "Make" and choose "Run SBT Action / test-compile"</li>
+        <li>Now when you run it, the project will be compiled using SBT</li>
+        </ol>
+    ]]></description>
     <change-notes><![CDATA[
-        <p>x.x.x (2010-xx-xx)
-        <br>- Initial release</p>
+        <ul>
+        <dt><b>Known Issues</b></dt>
+        <li>Assumes that the SBT project has already been created</li>
+        <li>Compiler errors in the SBT messages window are not clickable links</li>
+        <li>Not tested with multi-module projects</li>
+        </ul>
 
-        <p>Known issues
-        <br>- ...
-        </p>
+        <ul>
+        <dt><b>1.0.0 (2010-06-17)</b></dt>
+        <li>Runs SBT commands as "Before launch" tasks in run configurations</li>
+        <li>Runs SBT commands which are entered manually to the SBT messages window</li>
+        <li>Configures module compiler output directories automatically</li>
+        </ul>
     ]]></change-notes>
 
     <extensions defaultExtensionNs="com.intellij">
