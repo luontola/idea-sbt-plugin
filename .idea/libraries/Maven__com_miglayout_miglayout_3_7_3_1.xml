@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.miglayout:miglayout:3.7.3.1">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/miglayout/miglayout/3.7.3.1/miglayout-3.7.3.1.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/miglayout/miglayout/3.7.3.1/miglayout-3.7.3.1-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/miglayout/miglayout/3.7.3.1/miglayout-3.7.3.1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

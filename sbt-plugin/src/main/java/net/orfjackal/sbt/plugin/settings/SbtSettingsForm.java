@@ -7,6 +7,9 @@ package net.orfjackal.sbt.plugin.settings;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+import java.awt.event.*;
+import java.io.File;
 
 public class SbtSettingsForm {
     // org.jetbrains.idea.maven.project.MavenImportingSettingsForm
@@ -16,15 +19,70 @@ public class SbtSettingsForm {
     private final JTextField sbtLauncherJarPath;
 
     public SbtSettingsForm() {
-        root = new JPanel(new MigLayout());
-
         useSbtOutputDirs = new JCheckBox();
-        root.add(useSbtOutputDirs);
-        root.add(new JLabel("Use SBT output directories"), "wrap");
-
         sbtLauncherJarPath = new JTextField();
-        root.add(new JLabel("Location of SBT launcher JAR file:"), "wrap");
-        root.add(sbtLauncherJarPath);
+
+        JPanel projectSettings = new JPanel(new MigLayout());
+        projectSettings.setBorder(BorderFactory.createTitledBorder("Project Settings"));
+        {
+            useSbtOutputDirs.setText("Use SBT output directories *");
+            useSbtOutputDirs.setMnemonic('O');
+
+            JLabel hintText = new JLabel("<html>" +
+                    "* When using Maven together with SBT, it is recommendable to disable " +
+                    "<i>\"Maven / Importing / Use Maven output directories\"</i> in the project settings, " +
+                    "because otherwise it might conflict with this setting." +
+                    "</html>");
+
+            projectSettings.add(useSbtOutputDirs, "wrap");
+            projectSettings.add(hintText, "gapbefore 20, width 400, wrap");
+        }
+
+        JPanel ideSettings = new JPanel(new MigLayout("", "[grow]", "[nogrid]"));
+        ideSettings.setBorder(BorderFactory.createTitledBorder("IDE Settings"));
+        {
+            JLabel label = new JLabel("SBT launcher JAR file (sbt-launch.jar)");
+            label.setDisplayedMnemonic('L');
+            label.setLabelFor(sbtLauncherJarPath);
+
+            JButton browse = new JButton("...");
+            browse.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    browseForSbtLauncherJar();
+                }
+            });
+
+            ideSettings.add(label, "wrap");
+            ideSettings.add(sbtLauncherJarPath, "growx");
+            ideSettings.add(browse, "wrap");
+        }
+
+        root = new JPanel(new MigLayout("wrap 1", "[grow]"));
+        root.add(projectSettings, "grow");
+        root.add(ideSettings, "grow");
+    }
+
+    private void browseForSbtLauncherJar() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileFilter(new FileFilter() {
+            public boolean accept(File file) {
+                return file.isDirectory() ||
+                        file.getName().toLowerCase().endsWith(".jar");
+            }
+
+            public String getDescription() {
+                return "JAR files (*.jar)";
+            }
+        });
+
+        File oldValue = new File(sbtLauncherJarPath.getText());
+        chooser.setCurrentDirectory(oldValue);
+        chooser.setSelectedFile(oldValue);
+
+        int result = chooser.showOpenDialog(root);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            sbtLauncherJarPath.setText(chooser.getSelectedFile().getAbsolutePath());
+        }
     }
 
     public JComponent createComponent() {
@@ -46,6 +104,18 @@ public class SbtSettingsForm {
 
     public void copyFrom(SbtProjectSettings projectSettings, SbtApplicationSettings applicationSettings) {
         useSbtOutputDirs.setSelected(projectSettings.isUseSbtOutputDirs());
-        sbtLauncherJarPath.setText(applicationSettings.getSbtLauncherJarPath());
+        sbtLauncherJarPath.setText(new File(applicationSettings.getSbtLauncherJarPath()).getAbsolutePath());
+    }
+
+    public static void main(String[] args) {
+        SbtSettingsForm form = new SbtSettingsForm();
+        form.copyFrom(new SbtProjectSettings(), new SbtApplicationSettings());
+
+        JFrame frame = new JFrame("Test: SbtSettingsForm");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setContentPane(form.createComponent());
+        frame.setSize(600, 600);
+        frame.setLocation(500, 300);
+        frame.setVisible(true);
     }
 }
