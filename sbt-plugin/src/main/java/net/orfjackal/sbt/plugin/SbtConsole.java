@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SbtConsole {
+    // org.jetbrains.idea.maven.embedder.MavenConsoleImpl
 
     private static final Key<SbtConsole> CONSOLE_KEY = Key.create("SBT_CONSOLE_KEY");
 
