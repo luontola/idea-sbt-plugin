@@ -57,6 +57,14 @@
             <systemPath>${idea.home}/lib/util.jar</systemPath>
         </dependency>
 
+        <dependency>
+            <groupId>com.intellij</groupId>
+            <artifactId>annotations</artifactId>
+            <version>${idea.version}</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/redist/annotations.jar</systemPath>
+        </dependency>
+
         <!-- GUI -->
 
         <dependency>
