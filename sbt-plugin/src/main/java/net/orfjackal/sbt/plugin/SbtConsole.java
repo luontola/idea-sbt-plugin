@@ -5,13 +5,19 @@
 package net.orfjackal.sbt.plugin;
 
 import com.intellij.execution.filters.*;
-import com.intellij.execution.process.*;
+import com.intellij.execution.process.ProcessAdapter;
+import com.intellij.execution.process.ProcessEvent;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.wm.*;
-import com.intellij.ui.content.*;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.ui.content.Content;
+import com.intellij.ui.content.ContentFactory;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -25,10 +31,12 @@ public class SbtConsole {
     private final String title;
     private final Project project;
     private final ConsoleView consoleView;
+    private final ToolWindow messagesWindow;
     private final AtomicBoolean isOpen = new AtomicBoolean(false);
     private boolean finished = false;
 
-    public SbtConsole(String title, Project project) {
+    public SbtConsole(String title, Project project, @Nullable ToolWindow messagesWindow) {
+        this.messagesWindow = messagesWindow;
         this.title = title;
         this.project = project;
         this.consoleView = createConsoleView(project);
@@ -77,21 +85,26 @@ public class SbtConsole {
         // org.jetbrains.idea.maven.embedder.MavenConsoleImpl#ensureAttachedToToolWindow
         ApplicationManager.getApplication().invokeLater(new Runnable() {
             public void run() {
-                MessageView messageView = MessageView.SERVICE.getInstance(project);
+                ToolWindow window;
+                if (messagesWindow == null)
+                    window = ToolWindowManager.getInstance(project).getToolWindow(MessageBundle.message("SBT Console"));
+                else
+                    window = messagesWindow;
 
                 Content content = ContentFactory.SERVICE.getInstance().createContent(consoleView.getComponent(), title, true);
                 content.putUserData(CONSOLE_KEY, SbtConsole.this);
-                messageView.getContentManager().addContent(content);
-                messageView.getContentManager().setSelectedContent(content);
+                window.getContentManager().addContent(content);
+                window.getContentManager().setSelectedContent(content);
 
-                removeUnusedTabs(messageView, content);
-                activateMessagesWindow();
+                removeUnusedTabs(window, content);
+                if (!window.isActive())
+                    window.activate(null, false);
             }
         });
     }
 
-    private void removeUnusedTabs(MessageView messageView, Content content) {
-        for (Content each : messageView.getContentManager().getContents()) {
+    private void removeUnusedTabs(ToolWindow window, Content content) {
+        for (Content each : window.getContentManager().getContents()) {
             if (each.isPinned()) {
                 continue;
             }
@@ -109,15 +122,8 @@ public class SbtConsole {
             }
 
             if (console.isFinished()) {
-                messageView.getContentManager().removeContent(each, false);
+                window.getContentManager().removeContent(each, false);
             }
-        }
-    }
-
-    private void activateMessagesWindow() {
-        ToolWindow messagesWindow = ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.MESSAGES_WINDOW);
-        if (!messagesWindow.isActive()) {
-            messagesWindow.activate(null, false);
         }
     }
 }

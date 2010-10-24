@@ -13,8 +13,11 @@ import com.intellij.openapi.progress.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowFactory;
 import net.orfjackal.sbt.plugin.settings.*;
 import net.orfjackal.sbt.runner.*;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.util.*;
@@ -79,7 +82,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
 
     public void executeAndWait(String action) throws IOException {
         saveAllDocuments();
-        startIfNotStarted();
+        startIfNotStarted(null);
         try {
             sbt.execute(action);
 
@@ -108,10 +111,10 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
         }, ModalityState.NON_MODAL);
     }
 
-    private void startIfNotStarted() throws IOException {
+    public final void startIfNotStarted(@Nullable ToolWindow toolWindow) throws IOException {
         if (sbt == null || !sbt.isAlive()) {
             sbt = new SbtRunner(projectDir(), launcherJar());
-            printToMessageWindow();
+            printToMessageWindow(toolWindow);
             if (DEBUG) {
                 printToLogFile();
             }
@@ -129,9 +132,9 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
         return new File(applicationSettings.getState().getSbtLauncherJarPath());
     }
 
-    private void printToMessageWindow() {
+    private void printToMessageWindow(@Nullable ToolWindow toolWindow) {
         // org.jetbrains.idea.maven.execution.MavenExecutor#myConsole
-        SbtConsole console = new SbtConsole(MessageBundle.message("sbt.tasks.action"), myProject);
+        SbtConsole console = new SbtConsole(MessageBundle.message("sbt.tasks.action"), myProject, toolWindow);
         SbtProcessHandler process = new SbtProcessHandler(this, sbt.subscribeToOutput());
         console.attachToProcess(process);
         process.startNotify();
@@ -153,15 +156,21 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
 
     private void configureOutputDirs() {
         // org.jetbrains.idea.maven.importing.MavenFoldersImporter#configOutputFolders
-        String scalaVersion = getScalaVersion();
+        VirtualFile buildConfig = getBuildPropertiesFile();
 
-        for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-            String moduleBaseDir = getModuleBaseDir(module);
-            String compilerOutput = moduleBaseDir + "/target/scala_" + scalaVersion + "/classes";
-            String compilerTestOutput = moduleBaseDir + "/target/scala_" + scalaVersion + "/test-classes";
+        /* The SBT Console can be used to configure SBT for projects that don't use it yet,
+           so the build.properties file may not exist */
+        if (buildConfig != null && buildConfig.exists()) {
+            String scalaVersion = getScalaVersion(buildConfig);
 
-            setModuleOutputDirs(module, compilerOutput, compilerTestOutput);
-            // TODO: folders to exclude: project/boot, project/build/target, lib_managed, src_managed, target
+            for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+                String moduleBaseDir = getModuleBaseDir(module);
+                String compilerOutput = moduleBaseDir + "/target/scala_" + scalaVersion + "/classes";
+                String compilerTestOutput = moduleBaseDir + "/target/scala_" + scalaVersion + "/test-classes";
+
+                setModuleOutputDirs(module, compilerOutput, compilerTestOutput);
+                // TODO: folders to exclude: project/boot, project/build/target, lib_managed, src_managed, target
+            }
         }
 
         /*
@@ -181,13 +190,15 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
         return moduleFile.getParent().getUrl();
     }
 
-    private String getScalaVersion() {
+    private VirtualFile getBuildPropertiesFile() {
         VirtualFile baseDir = myProject.getBaseDir();
         if (baseDir == null) {
             throw new IllegalArgumentException("Project base directory not found");
         }
+        return baseDir.findFileByRelativePath("project/build.properties");
+    }
 
-        VirtualFile buildConfig = baseDir.findFileByRelativePath("project/build.properties");
+    private String getScalaVersion(VirtualFile buildConfig) {
         if (!(buildConfig != null && buildConfig.exists())) {
             throw new IllegalArgumentException("project/build.properties does not exist at " + buildConfig);
         }
