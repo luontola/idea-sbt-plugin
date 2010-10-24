@@ -4,33 +4,42 @@
 
 package net.orfjackal.sbt.runner;
 
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
+
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class SbtRunner {
 
     private static final String PROMPT = "\n> ";
     private static final String PROMPT_AFTER_EMPTY_ACTION = "> ";
+    private static final Logger LOG = Logger.getInstance("#orfjackal.sbt.runner.SbtRunner");
 
     private final ProcessRunner sbt;
 
-    public SbtRunner(File workingDir, File launcherJar) {
+    public SbtRunner(File workingDir, File launcherJar, String[] vmParameters) {
         if (!workingDir.isDirectory()) {
             throw new IllegalArgumentException("Working directory does not exist: " + workingDir);
         }
         if (!launcherJar.isFile()) {
             throw new IllegalArgumentException("Launcher JAR file does not exist: " + launcherJar);
         }
-        sbt = new ProcessRunner(workingDir, getCommand(launcherJar));
+        sbt = new ProcessRunner(workingDir, getCommand(launcherJar, vmParameters));
     }
 
-    private static String[] getCommand(File launcherJar) {
-        return new String[]{
-                "java",
-                "-Xmx512M",
+    private static String[] getCommand(File launcherJar, String[] vmParameters) {
+        ArrayList<String> commandLine = new ArrayList<String>();
+        commandLine.add("java");
+        commandLine.addAll(Arrays.asList(vmParameters));
+        commandLine.addAll(Arrays.asList(
                 "-Dsbt.log.noformat=true",
                 "-Djline.terminal=jline.UnsupportedTerminal",
-                "-jar", launcherJar.getAbsolutePath()
-        };
+                "-jar",
+                launcherJar.getAbsolutePath()));
+        LOG.info("SBT command line: " + StringUtil.join(commandLine, " "));
+        return commandLine.toArray(new String[commandLine.size()]);
     }
 
     public OutputReader subscribeToOutput() {

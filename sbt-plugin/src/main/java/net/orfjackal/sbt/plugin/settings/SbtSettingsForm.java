@@ -17,10 +17,12 @@ public class SbtSettingsForm {
     private final JPanel root;
     private final JCheckBox useSbtOutputDirs;
     private final JTextField sbtLauncherJarPath;
+    private final JTextField vmParameters;
 
     public SbtSettingsForm() {
         useSbtOutputDirs = new JCheckBox();
         sbtLauncherJarPath = new JTextField();
+        vmParameters = new JTextField();
 
         JPanel projectSettings = new JPanel(new MigLayout());
         projectSettings.setBorder(BorderFactory.createTitledBorder("Project Settings"));
@@ -55,6 +57,14 @@ public class SbtSettingsForm {
             ideSettings.add(label, "wrap");
             ideSettings.add(sbtLauncherJarPath, "growx");
             ideSettings.add(browse, "wrap");
+        }
+        {
+            JLabel label = new JLabel("VM Parameters");
+            label.setDisplayedMnemonic('V');
+            label.setLabelFor(vmParameters);
+            vmParameters.setToolTipText("The following are automatically appended: -Dsbt.log.noformat=true -Djline.terminal=jline.UnsupportedTerminal");
+            ideSettings.add(label, "wrap");
+            ideSettings.add(vmParameters, "growx");
         }
 
         root = new JPanel(new MigLayout("wrap 1", "[grow]"));
@@ -100,11 +110,13 @@ public class SbtSettingsForm {
     public void copyTo(SbtProjectSettings projectSettings, SbtApplicationSettings applicationSettings) {
         projectSettings.setUseSbtOutputDirs(useSbtOutputDirs.isSelected());
         applicationSettings.setSbtLauncherJarPath(sbtLauncherJarPath.getText());
+        applicationSettings.setSbtLauncherVmParameters(vmParameters.getText());
     }
 
     public void copyFrom(SbtProjectSettings projectSettings, SbtApplicationSettings applicationSettings) {
         useSbtOutputDirs.setSelected(projectSettings.isUseSbtOutputDirs());
         sbtLauncherJarPath.setText(new File(applicationSettings.getSbtLauncherJarPath()).getAbsolutePath());
+        vmParameters.setText(applicationSettings.getSbtLauncherVmParameters());
     }
 
     public static void main(String[] args) {

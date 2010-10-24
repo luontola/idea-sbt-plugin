@@ -113,7 +113,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
 
     public final void startIfNotStarted(@Nullable ToolWindow toolWindow) throws IOException {
         if (sbt == null || !sbt.isAlive()) {
-            sbt = new SbtRunner(projectDir(), launcherJar());
+            sbt = new SbtRunner(projectDir(), launcherJar(), vmParameters());
             printToMessageWindow(toolWindow);
             if (DEBUG) {
                 printToLogFile();
@@ -130,6 +130,10 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
 
     private File launcherJar() {
         return new File(applicationSettings.getState().getSbtLauncherJarPath());
+    }
+
+    private String[] vmParameters() {
+        return applicationSettings.getState().getSbtLauncherVmParameters().split("\\s");
     }
 
     private void printToMessageWindow(@Nullable ToolWindow toolWindow) {

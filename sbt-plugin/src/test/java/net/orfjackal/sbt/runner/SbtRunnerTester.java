@@ -10,12 +10,13 @@ import java.util.Scanner;
 public class SbtRunnerTester {
 
     private static final File LAUNCHER_JAR = new File(System.getProperty("user.home"), "bin/sbt-launch.jar");
+    private static final String[] VM_PARAMS = new String[] {"-Xmx512M"};
     private static final File WORKING_DIR = new File("/tmp");
 
     private static SbtRunner sbt;
 
     public static void main(String[] args) throws Exception {
-        sbt = new SbtRunner(WORKING_DIR, LAUNCHER_JAR);
+        sbt = new SbtRunner(WORKING_DIR, LAUNCHER_JAR, VM_PARAMS);
         OutputReader output = sbt.subscribeToOutput();
         sbt.start();
 
