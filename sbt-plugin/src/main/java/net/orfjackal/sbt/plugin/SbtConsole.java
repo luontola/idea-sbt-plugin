@@ -19,9 +19,8 @@ public class SbtConsole {
 
     private static final Key<SbtConsole> CONSOLE_KEY = Key.create("SBT_CONSOLE_KEY");
 
-    // TODO: figure out how to use this regexp right
-    private static final String CONSOLE_FILTER_REGEXP =
-            RegexpFilter.FILE_PATH_MACROS + ":\\[" + RegexpFilter.LINE_MACROS + "," + RegexpFilter.COLUMN_MACROS + "]";
+    public static final String CONSOLE_FILTER_REGEXP =
+            "\\s" + RegexpFilter.FILE_PATH_MACROS + ":" + RegexpFilter.LINE_MACROS + ":\\s";
 
     private final String title;
     private final Project project;
