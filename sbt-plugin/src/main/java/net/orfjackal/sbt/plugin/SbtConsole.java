@@ -87,7 +87,7 @@ public class SbtConsole {
             public void run() {
                 ToolWindow window;
                 if (messagesWindow == null)
-                    window = ToolWindowManager.getInstance(project).getToolWindow(MessageBundle.message("SBT Console"));
+                    window = ToolWindowManager.getInstance(project).getToolWindow(MessageBundle.message("sbt.console.id"));
                 else
                     window = messagesWindow;
 
