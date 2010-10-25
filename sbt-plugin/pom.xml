@@ -62,7 +62,7 @@
             <artifactId>annotations</artifactId>
             <version>${idea.version}</version>
             <scope>system</scope>
-            <systemPath>${idea.home}/redist/annotations.jar</systemPath>
+            <systemPath>${idea.home}/lib/annotations.jar</systemPath>
         </dependency>
 
         <!-- GUI -->
