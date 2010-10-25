@@ -11,7 +11,7 @@ import java.io.File;
 
 public class SbtApplicationSettings {
     private static final String DEFAULT_SBT_LAUNCHER = canonicalPathTo(new File(System.getProperty("user.home"), "bin/sbt-launch.jar"));
-    private static final String DEFAULT_SBT_VM_PARAMETERS = "-server -Xmx512M -XX:MaxPermSize=256M";
+    private static final String DEFAULT_SBT_VM_PARAMETERS = "-Xmx512M -XX:MaxPermSize=256M";
 
     private String sbtLauncherJarPath = DEFAULT_SBT_LAUNCHER;
     private String sbtLauncherVmParameters = DEFAULT_SBT_VM_PARAMETERS;
