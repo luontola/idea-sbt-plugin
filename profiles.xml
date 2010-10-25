@@ -4,8 +4,8 @@
         <profile>
             <id>default</id>
             <properties>
-                <idea.version>95.66</idea.version>
-                <idea.home>C:/Program Files (x86)/JetBrains/IntelliJ IDEA Community Edition 9.0.2</idea.home>
+                <idea.version>95.429</idea.version>
+                <idea.home>C:/Program Files (x86)/JetBrains/IntelliJ IDEA Community Edition 9.0.3</idea.home>
             </properties>
             <activation>
                 <activeByDefault>true</activeByDefault>
