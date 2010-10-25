@@ -8,8 +8,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 
 public class SbtRunner {
 
@@ -30,16 +29,19 @@ public class SbtRunner {
     }
 
     private static String[] getCommand(File launcherJar, String[] vmParameters) {
-        ArrayList<String> commandLine = new ArrayList<String>();
-        commandLine.add("java");
-        commandLine.addAll(Arrays.asList(vmParameters));
-        commandLine.addAll(Arrays.asList(
+        List<String> command = new ArrayList<String>();
+
+        command.add("java");
+        command.addAll(Arrays.asList(vmParameters));
+        command.addAll(Arrays.asList(
                 "-Dsbt.log.noformat=true",
                 "-Djline.terminal=jline.UnsupportedTerminal",
                 "-jar",
-                launcherJar.getAbsolutePath()));
-        LOG.info("SBT command line: " + StringUtil.join(commandLine, " "));
-        return commandLine.toArray(new String[commandLine.size()]);
+                launcherJar.getAbsolutePath()
+        ));
+
+        LOG.info("SBT command line: " + StringUtil.join(command, " "));
+        return command.toArray(new String[command.size()]);
     }
 
     public OutputReader subscribeToOutput() {
