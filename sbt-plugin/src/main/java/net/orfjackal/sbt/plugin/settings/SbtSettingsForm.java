@@ -59,10 +59,9 @@ public class SbtSettingsForm {
             ideSettings.add(browse, "wrap");
         }
         {
-            JLabel label = new JLabel("VM Parameters");
+            JLabel label = new JLabel("VM parameters");
             label.setDisplayedMnemonic('V');
             label.setLabelFor(vmParameters);
-            vmParameters.setToolTipText("The following are automatically appended: -Dsbt.log.noformat=true -Djline.terminal=jline.UnsupportedTerminal");
             ideSettings.add(label, "wrap");
             ideSettings.add(vmParameters, "growx");
         }
