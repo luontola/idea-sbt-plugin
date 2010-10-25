@@ -29,8 +29,9 @@
 
         <ul>
         <dt><b>1.x.x (2010-xx-xx)</b></dt>
-        <li>VM parameters for SBT can be changed from the plugin settings (thanks, Jason Zaugg)</li>
         <li>Links from SBT error messages to the editor (thanks, Ismael Juma)</li>
+        <li>An always available SBT Console tool window (thanks, Ismael Juma)</li>
+        <li>VM parameters for SBT can be changed from the plugin settings (thanks, Jason Zaugg)</li>
 
         <dt><b>1.0.0 (2010-06-17)</b></dt>
         <li>Runs SBT commands as "Before launch" tasks in run configurations</li>
