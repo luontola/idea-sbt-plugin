@@ -19,11 +19,11 @@
         <li>Now when you run it, the project will be compiled using SBT</li>
         </ol>
     ]]></description>
+    <!-- TODO: test whether the following issues still exist -->
     <change-notes><![CDATA[
         <ul>
         <dt><b>Known Issues</b></dt>
         <li>Assumes that the SBT project has already been created</li>
-        <li>Compiler errors in the SBT messages window are not clickable links</li>
         <li>Not tested with multi-module projects</li>
         </ul>
 
