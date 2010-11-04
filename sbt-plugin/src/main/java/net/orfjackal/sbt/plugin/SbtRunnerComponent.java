@@ -82,7 +82,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
 
     public void executeAndWait(String action) throws IOException {
         saveAllDocuments();
-        startIfNotStarted(null);
+        startIfNotStarted(new SbtConsole(MessageBundle.message("sbt.tasks.action"), myProject));
         try {
             sbt.execute(action);
 
@@ -111,15 +111,19 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
         }, ModalityState.NON_MODAL);
     }
 
-    public final void startIfNotStarted(@Nullable ToolWindow toolWindow) throws IOException {
-        if (sbt == null || !sbt.isAlive()) {
+    public final void startIfNotStarted(SbtConsole console) throws IOException {
+        if (!isSbtAlive()) {
             sbt = new SbtRunner(projectDir(), launcherJar(), vmParameters());
-            printToMessageWindow(toolWindow);
+            printToMessageWindow(console);
             if (DEBUG) {
                 printToLogFile();
             }
             sbt.start();
         }
+    }
+
+    public final boolean isSbtAlive() {
+        return sbt != null && sbt.isAlive();
     }
 
     private File projectDir() {
@@ -136,11 +140,10 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
         return applicationSettings.getState().getSbtLauncherVmParameters().split("\\s");
     }
 
-    private void printToMessageWindow(@Nullable ToolWindow toolWindow) {
+    private void printToMessageWindow(SbtConsole console) {
         // org.jetbrains.idea.maven.execution.MavenExecutor#myConsole
-        SbtConsole console = new SbtConsole(MessageBundle.message("sbt.tasks.action"), myProject, toolWindow);
         SbtProcessHandler process = new SbtProcessHandler(this, sbt.subscribeToOutput());
-        console.attachToProcess(process);
+        console.attachToProcess(process, this);
         process.startNotify();
     }
 

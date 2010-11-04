@@ -17,14 +17,7 @@ public class SbtToolWindowFactory implements ToolWindowFactory {
     private static final Logger logger = Logger.getInstance(SbtToolWindowFactory.class.getName());
 
     public void createToolWindowContent(final Project project, final ToolWindow toolWindow) {
-        new Task.Backgroundable(project, MessageBundle.message("sbt.tasks.executing"), false) {
-            public void run(ProgressIndicator indicator) {
-                try {
-                    SbtRunnerComponent.getInstance(project).startIfNotStarted(toolWindow);
-                } catch (IOException e) {
-                    logger.error("Failed to start SBT", e);
-                }
-            }
-        }.queue();
+        new SbtConsole(MessageBundle.message("sbt.tasks.action"), project).ensureAttachedToToolWindow(
+                SbtRunnerComponent.getInstance(project), toolWindow);
     }
 }

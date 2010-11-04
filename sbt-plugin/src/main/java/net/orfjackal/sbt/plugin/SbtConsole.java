@@ -9,9 +9,15 @@ import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.ide.actions.ContextHelpAction;
+import com.intellij.ide.actions.NextOccurenceToolbarAction;
+import com.intellij.ide.actions.PreviousOccurenceToolbarAction;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.SimpleToolWindowPanel;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -19,10 +25,15 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
+import java.awt.*;
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SbtConsole {
     // org.jetbrains.idea.maven.embedder.MavenConsoleImpl
+
+    private static final Logger logger = Logger.getInstance(SbtConsole.class.getName());
 
     private static final Key<SbtConsole> CONSOLE_KEY = Key.create("SBT_CONSOLE_KEY");
 
@@ -32,12 +43,10 @@ public class SbtConsole {
     private final String title;
     private final Project project;
     private final ConsoleView consoleView;
-    private final ToolWindow messagesWindow;
     private final AtomicBoolean isOpen = new AtomicBoolean(false);
     private boolean finished = false;
 
-    public SbtConsole(String title, Project project, @Nullable ToolWindow messagesWindow) {
-        this.messagesWindow = messagesWindow;
+    public SbtConsole(String title, Project project) {
         this.title = title;
         this.project = project;
         this.consoleView = createConsoleView(project);
@@ -65,11 +74,16 @@ public class SbtConsole {
         finished = true;
     }
 
-    public void attachToProcess(ProcessHandler processHandler) {
+    public void attachToProcess(ProcessHandler processHandler, final SbtRunnerComponent runnerComponent) {
         consoleView.attachToProcess(processHandler);
         processHandler.addProcessListener(new ProcessAdapter() {
             public void onTextAvailable(ProcessEvent event, Key outputType) {
-                ensureAttachedToToolWindow();
+                ApplicationManager.getApplication().invokeLater(new Runnable() {
+                    public void run() {
+                        ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(MessageBundle.message("sbt.console.id"));
+                        ensureAttachedToToolWindow(runnerComponent, window);
+                    }
+                });
             }
 
             public void processTerminated(ProcessEvent event) {
@@ -78,30 +92,49 @@ public class SbtConsole {
         });
     }
 
-    private void ensureAttachedToToolWindow() {
+    public final void ensureAttachedToToolWindow(SbtRunnerComponent runnerComponent, ToolWindow window) {
         if (!isOpen.compareAndSet(false, true)) {
             return;
         }
 
         // org.jetbrains.idea.maven.embedder.MavenConsoleImpl#ensureAttachedToToolWindow
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-            public void run() {
-                ToolWindow window;
-                if (messagesWindow == null)
-                    window = ToolWindowManager.getInstance(project).getToolWindow(MessageBundle.message("sbt.console.id"));
+        SimpleToolWindowPanel toolWindowPanel = new SimpleToolWindowPanel(false, true);
+        toolWindowPanel.setToolbar(createToolbar(runnerComponent));
+        toolWindowPanel.setContent(consoleView.getComponent());
+        Content content = ContentFactory.SERVICE.getInstance().createContent(toolWindowPanel, title, true);
+        content.putUserData(CONSOLE_KEY, SbtConsole.this);
+        window.getContentManager().addContent(content);
+        window.getContentManager().setSelectedContent(content);
+
+        removeUnusedTabs(window, content);
+        if (!window.isActive())
+            window.activate(null, false);
+    }
+
+    private JComponent createToolbar(final SbtRunnerComponent runnerComponent) {
+        JPanel toolbarPanel = new JPanel(new GridLayout());
+
+        DefaultActionGroup group = new DefaultActionGroup();
+        group.add(new AnAction("Start SBT", "Start SBT", IconLoader.getIcon("/general/toolWindowRun.png")) {
+            @Override
+            public void actionPerformed(AnActionEvent event) {
+                try {
+                    runnerComponent.startIfNotStarted(SbtConsole.this);
+                } catch (IOException e) {
+                    logger.error("Failed to start SBT", e);
+                }
+            }
+            @Override
+            public void update(AnActionEvent event) {
+                if (runnerComponent.isSbtAlive())
+                    event.getPresentation().setEnabled(false);
                 else
-                    window = messagesWindow;
-
-                Content content = ContentFactory.SERVICE.getInstance().createContent(consoleView.getComponent(), title, true);
-                content.putUserData(CONSOLE_KEY, SbtConsole.this);
-                window.getContentManager().addContent(content);
-                window.getContentManager().setSelectedContent(content);
-
-                removeUnusedTabs(window, content);
-                if (!window.isActive())
-                    window.activate(null, false);
+                    event.getPresentation().setEnabled(true);
             }
         });
+        toolbarPanel.add(
+                ActionManager.getInstance().createActionToolbar("SbtConsoleToolbar", group, false).getComponent());
+        return toolbarPanel;
     }
 
     private void removeUnusedTabs(ToolWindow window, Content content) {
