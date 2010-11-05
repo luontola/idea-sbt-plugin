@@ -44,12 +44,14 @@ public class SbtConsole {
     private final Project project;
     private final ConsoleView consoleView;
     private final AtomicBoolean isOpen = new AtomicBoolean(false);
+    private final SbtRunnerComponent runnerComponent;
     private boolean finished = false;
 
-    public SbtConsole(String title, Project project) {
+    public SbtConsole(String title, Project project, SbtRunnerComponent runnerComponent) {
         this.title = title;
         this.project = project;
         this.consoleView = createConsoleView(project);
+        this.runnerComponent = runnerComponent;
     }
 
     private static ConsoleView createConsoleView(Project project) {
@@ -92,26 +94,28 @@ public class SbtConsole {
         });
     }
 
-    public final void ensureAttachedToToolWindow(SbtRunnerComponent runnerComponent, ToolWindow window) {
+    public final void ensureAttachedToToolWindow(ToolWindow window) {
         if (!isOpen.compareAndSet(false, true)) {
             return;
         }
 
         // org.jetbrains.idea.maven.embedder.MavenConsoleImpl#ensureAttachedToToolWindow
         SimpleToolWindowPanel toolWindowPanel = new SimpleToolWindowPanel(false, true);
-        toolWindowPanel.setToolbar(createToolbar(runnerComponent));
+        toolWindowPanel.setToolbar(createToolbar());
         toolWindowPanel.setContent(consoleView.getComponent());
         Content content = ContentFactory.SERVICE.getInstance().createContent(toolWindowPanel, title, true);
         content.putUserData(CONSOLE_KEY, SbtConsole.this);
+
         window.getContentManager().addContent(content);
         window.getContentManager().setSelectedContent(content);
 
         removeUnusedTabs(window, content);
+
         if (!window.isActive())
             window.activate(null, false);
     }
 
-    private JComponent createToolbar(final SbtRunnerComponent runnerComponent) {
+    private JComponent createToolbar() {
         JPanel toolbarPanel = new JPanel(new GridLayout());
 
         DefaultActionGroup group = new DefaultActionGroup();
@@ -119,7 +123,7 @@ public class SbtConsole {
             @Override
             public void actionPerformed(AnActionEvent event) {
                 try {
-                    runnerComponent.startIfNotStarted(SbtConsole.this);
+                    runnerComponent.startIfNotStarted();
                 } catch (IOException e) {
                     logger.error("Failed to start SBT", e);
                 }

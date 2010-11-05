@@ -28,6 +28,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
     private static final boolean DEBUG = false;
 
     private SbtRunner sbt;
+    private final SbtConsole console;
     private final SbtProjectSettingsComponent projectSettings;
     private final SbtApplicationSettingsComponent applicationSettings;
 
@@ -41,6 +42,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
         super(project);
         this.projectSettings = projectSettings;
         this.applicationSettings = applicationSettings;
+        console = new SbtConsole(MessageBundle.message("sbt.tasks.action"), project, this);
     }
 
     public CompletionSignal executeInBackground(final String action) {
@@ -82,7 +84,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
 
     public void executeAndWait(String action) throws IOException {
         saveAllDocuments();
-        startIfNotStarted(new SbtConsole(MessageBundle.message("sbt.tasks.action"), myProject));
+        startIfNotStarted();
         try {
             sbt.execute(action);
 
@@ -111,10 +113,14 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
         }, ModalityState.NON_MODAL);
     }
 
-    public final void startIfNotStarted(SbtConsole console) throws IOException {
+    public final SbtConsole getConsole() {
+        return console;
+    }
+
+    public final void startIfNotStarted() throws IOException {
         if (!isSbtAlive()) {
             sbt = new SbtRunner(projectDir(), launcherJar(), vmParameters());
-            printToMessageWindow(console);
+            printToMessageWindow();
             if (DEBUG) {
                 printToLogFile();
             }
@@ -140,7 +146,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
         return applicationSettings.getState().getSbtLauncherVmParameters().split("\\s");
     }
 
-    private void printToMessageWindow(SbtConsole console) {
+    private void printToMessageWindow() {
         // org.jetbrains.idea.maven.execution.MavenExecutor#myConsole
         SbtProcessHandler process = new SbtProcessHandler(this, sbt.subscribeToOutput());
         console.attachToProcess(process, this);

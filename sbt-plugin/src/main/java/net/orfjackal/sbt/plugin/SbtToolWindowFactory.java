@@ -14,10 +14,7 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 import java.io.IOException;
 
 public class SbtToolWindowFactory implements ToolWindowFactory {
-    private static final Logger logger = Logger.getInstance(SbtToolWindowFactory.class.getName());
-
     public void createToolWindowContent(final Project project, final ToolWindow toolWindow) {
-        new SbtConsole(MessageBundle.message("sbt.tasks.action"), project).ensureAttachedToToolWindow(
-                SbtRunnerComponent.getInstance(project), toolWindow);
+        SbtRunnerComponent.getInstance(project).getConsole().ensureAttachedToToolWindow(toolWindow);
     }
 }
