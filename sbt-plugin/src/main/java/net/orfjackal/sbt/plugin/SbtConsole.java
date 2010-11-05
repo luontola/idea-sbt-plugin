@@ -83,7 +83,13 @@ public class SbtConsole {
                 ApplicationManager.getApplication().invokeLater(new Runnable() {
                     public void run() {
                         ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(MessageBundle.message("sbt.console.id"));
-                        ensureAttachedToToolWindow(runnerComponent, window);
+                        /* When we retrieve a window from ToolWindowManager before SbtToolWindowFactory is called,
+                         * we get an undesirable Content */
+                        for (Content each : window.getContentManager().getContents()) {
+                            if (each.getUserData(CONSOLE_KEY) == null)
+                                window.getContentManager().removeContent(each, false);
+                        }
+                        ensureAttachedToToolWindow(window);
                     }
                 });
             }
