@@ -5,25 +5,16 @@
 package net.orfjackal.sbt.plugin;
 
 import com.intellij.execution.filters.*;
-import com.intellij.execution.process.ProcessAdapter;
-import com.intellij.execution.process.ProcessEvent;
-import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.process.*;
 import com.intellij.execution.ui.ConsoleView;
-import com.intellij.ide.actions.ContextHelpAction;
-import com.intellij.ide.actions.NextOccurenceToolbarAction;
-import com.intellij.ide.actions.PreviousOccurenceToolbarAction;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
-import com.intellij.openapi.util.IconLoader;
-import com.intellij.openapi.util.Key;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.ui.content.Content;
-import com.intellij.ui.content.ContentFactory;
-import org.jetbrains.annotations.Nullable;
+import com.intellij.openapi.util.*;
+import com.intellij.openapi.wm.*;
+import com.intellij.ui.content.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -86,8 +77,9 @@ public class SbtConsole {
                         /* When we retrieve a window from ToolWindowManager before SbtToolWindowFactory is called,
                          * we get an undesirable Content */
                         for (Content each : window.getContentManager().getContents()) {
-                            if (each.getUserData(CONSOLE_KEY) == null)
+                            if (each.getUserData(CONSOLE_KEY) == null) {
                                 window.getContentManager().removeContent(each, false);
+                            }
                         }
                         ensureAttachedToToolWindow(window);
                     }
@@ -117,8 +109,9 @@ public class SbtConsole {
 
         removeUnusedTabs(window, content);
 
-        if (!window.isActive())
+        if (!window.isActive()) {
             window.activate(null, false);
+        }
     }
 
     private JComponent createToolbar() {
@@ -134,12 +127,14 @@ public class SbtConsole {
                     logger.error("Failed to start SBT", e);
                 }
             }
+
             @Override
             public void update(AnActionEvent event) {
-                if (runnerComponent.isSbtAlive())
+                if (runnerComponent.isSbtAlive()) {
                     event.getPresentation().setEnabled(false);
-                else
+                } else {
                     event.getPresentation().setEnabled(true);
+                }
             }
         });
         toolbarPanel.add(

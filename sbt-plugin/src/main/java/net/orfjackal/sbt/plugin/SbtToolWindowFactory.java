@@ -4,14 +4,8 @@
 
 package net.orfjackal.sbt.plugin;
 
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowFactory;
-
-import java.io.IOException;
+import com.intellij.openapi.wm.*;
 
 public class SbtToolWindowFactory implements ToolWindowFactory {
     public void createToolWindowContent(final Project project, final ToolWindow toolWindow) {

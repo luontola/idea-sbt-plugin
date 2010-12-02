@@ -13,11 +13,8 @@ import com.intellij.openapi.progress.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowFactory;
 import net.orfjackal.sbt.plugin.settings.*;
 import net.orfjackal.sbt.runner.*;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.util.*;
