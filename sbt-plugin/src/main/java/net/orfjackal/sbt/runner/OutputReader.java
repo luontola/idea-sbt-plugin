@@ -5,6 +5,8 @@
 package net.orfjackal.sbt.runner;
 
 import java.io.*;
+import java.util.Arrays;
+import java.util.Collection;
 
 public class OutputReader extends FilterReader {
 
@@ -16,13 +18,22 @@ public class OutputReader extends FilterReader {
     }
 
     public boolean waitForOutput(String expected) throws IOException {
-        CyclicCharBuffer buffer = new CyclicCharBuffer(expected.length());
+        return waitForOutput(Arrays.asList(expected));
+    }
+
+    public boolean waitForOutput(Collection<String> expected) throws IOException {
+        int max = 0;
+        for (String s : expected) {
+            max = Math.max(max, s.length());
+        }
+        CyclicCharBuffer buffer = new CyclicCharBuffer(max);
         int ch;
         while ((ch = read()) != -1) {
             buffer.append((char) ch);
-
-            if (buffer.contentEquals(expected)) {
-                return FOUND;
+            for (String s : expected) {
+                if (buffer.contentEquals(s)) {
+                    return FOUND;
+                }
             }
         }
         return END_OF_OUTPUT;
