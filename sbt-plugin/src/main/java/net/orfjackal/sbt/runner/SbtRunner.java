@@ -13,6 +13,7 @@ import java.util.*;
 public class SbtRunner {
 
     private static final String PROMPT = "\n> ";
+    private static final String FAILED_TO_COMPILE_PROMPT = "Hit enter to retry or 'exit' to quit:";
     private static final String PROMPT_AFTER_EMPTY_ACTION = "> ";
     private static final String ERROR_RUNNING_ACTION_PREFIX = "[error] Error running ";
     private static final Logger LOG = Logger.getInstance("#orfjackal.sbt.runner.SbtRunner");
@@ -54,7 +55,7 @@ public class SbtRunner {
         OutputReader output = sbt.subscribeToOutput();
         sbt.start();
         sbt.destroyOnShutdown();
-        output.waitForOutput(PROMPT);
+        output.waitForOutput(Arrays.asList(PROMPT, FAILED_TO_COMPILE_PROMPT));
         output.close();
     }
 
@@ -76,12 +77,11 @@ public class SbtRunner {
         try {
             sbt.writeInput(action + "\n");
 
-            if (action.trim().equals("")) {
-                output.waitForOutput(PROMPT_AFTER_EMPTY_ACTION);
-            } else {
-                output.waitForOutput(PROMPT);
-            }
-
+        if (action.trim().equals("")) {
+            output.waitForOutput(Arrays.asList(PROMPT_AFTER_EMPTY_ACTION, FAILED_TO_COMPILE_PROMPT));
+        } else {
+            output.waitForOutput(Arrays.asList(PROMPT, FAILED_TO_COMPILE_PROMPT));
+        }
             boolean error = output.endOfOutputContains(ERROR_RUNNING_ACTION_PREFIX);
             return !error;
         } finally {
