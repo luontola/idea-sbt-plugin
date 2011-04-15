@@ -51,11 +51,10 @@ public class SbtRunner {
 
     public void start() throws IOException {
         // TODO: detect if the directory does not have a project
-        OutputReader output = sbt.subscribeToOutput();
         sbt.start();
         sbt.destroyOnShutdown();
-        output.waitForOutput(Arrays.asList(PROMPT, FAILED_TO_COMPILE_PROMPT));
-        output.close();
+        // Don't wait for the prompt, as we are on the AWT Event Dispatch Thread. Startup can take
+        // some time, if downloading Scala JAR files.
     }
 
     public void destroy() {
