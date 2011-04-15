@@ -13,6 +13,7 @@ import com.intellij.openapi.progress.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import net.orfjackal.sbt.plugin.settings.*;
 import net.orfjackal.sbt.runner.*;
 
@@ -67,6 +68,11 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
         return signal;
     }
 
+    @Override
+    public void projectClosed() {
+        destroyProcess();
+    }
+
     private void queue(final Task.Backgroundable task) {
         if (ApplicationManager.getApplication().isDispatchThread()) {
             task.queue();
@@ -95,13 +101,12 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
             // org.jetbrains.idea.maven.project.MavenProjectsManager#updateProjectFolders
             // org.jetbrains.idea.maven.execution.MavenRunner#runBatch
             // org.jetbrains.idea.maven.execution.MavenRunner#updateTargetFolders
-
-            // TODO: synchronize changes to file system (?)
-
         } catch (IOException e) {
             destroyProcess();
             throw e;
         }
+
+        VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
 
         if (projectSettings.getState().isUseSbtOutputDirs()) {
             configureOutputDirs();
