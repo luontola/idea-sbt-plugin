@@ -29,7 +29,6 @@ public class OutputReader extends FilterReader {
             checkExpectedLength(s);
             max = Math.max(max, s.length());
         }
-        CyclicCharBuffer buffer = new CyclicCharBuffer(max);
         int ch;
         while ((ch = read()) != -1) {
             buffer.append((char) ch);
