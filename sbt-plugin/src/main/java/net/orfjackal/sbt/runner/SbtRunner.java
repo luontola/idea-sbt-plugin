@@ -68,8 +68,8 @@ public class SbtRunner {
     }
 
     /**
-     * @param action  the SBT action to run, e.g. "compile"
-     * @return        false if an error was parsed from the output, true otherwise
+     * @param action the SBT action to run, e.g. "compile"
+     * @return false if an error was parsed from the output, true otherwise
      * @throws java.io.IOException
      */
     public boolean execute(String action) throws IOException {
@@ -77,15 +77,15 @@ public class SbtRunner {
         try {
             sbt.writeInput(action + "\n");
 
-        if (action.trim().equals("")) {
-            output.waitForOutput(Arrays.asList(PROMPT_AFTER_EMPTY_ACTION, FAILED_TO_COMPILE_PROMPT));
-        } else {
-            output.waitForOutput(Arrays.asList(PROMPT, FAILED_TO_COMPILE_PROMPT));
-        }
-            boolean error = output.endOfOutputContains(ERROR_RUNNING_ACTION_PREFIX);
-            return !error;
+            if (action.trim().equals("")) {
+                output.waitForOutput(Arrays.asList(PROMPT_AFTER_EMPTY_ACTION, FAILED_TO_COMPILE_PROMPT));
+            } else {
+                output.waitForOutput(Arrays.asList(PROMPT, FAILED_TO_COMPILE_PROMPT));
+            }
         } finally {
             output.close();
         }
+        boolean error = output.endOfOutputContains(ERROR_RUNNING_ACTION_PREFIX);
+        return !error;
     }
 }
