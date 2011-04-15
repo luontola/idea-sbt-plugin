@@ -50,12 +50,12 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
             public void run(ProgressIndicator indicator) {
                 try {
                     logger.info("Begin executing: " + action);
-                    executeAndWait(action);
-                    logger.info("Done executing: " + action);
-
-                    // TODO: detect if there was a compile error or similar failure, so that the following task would not be started
-
-                    signal.success();
+                    if (executeAndWait(action)) {
+                        signal.success();
+                        logger.info("Done executing: " + action);
+                    } else {
+                        logger.info("Error executing: " + action);
+                    }
                 } catch (IOException e) {
                     logger.error("Failed to execute action \"" + action + "\". Maybe SBT failed to start?", e);
                 } finally {
@@ -79,11 +79,17 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
         }
     }
 
-    public void executeAndWait(String action) throws IOException {
+    /**
+     * @param action the SBT action to run
+     * @return       false if an error was detected, true otherwise
+     * @throws IOException
+     */
+    public boolean executeAndWait(String action) throws IOException {
         saveAllDocuments();
         startIfNotStarted();
+        boolean success;
         try {
-            sbt.execute(action);
+            success = sbt.execute(action);
 
             // TODO: update target folders (?)
             // org.jetbrains.idea.maven.project.MavenProjectsManager#updateProjectFolders
@@ -100,6 +106,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
         if (projectSettings.getState().isUseSbtOutputDirs()) {
             configureOutputDirs();
         }
+        return success;
     }
 
     private static void saveAllDocuments() {

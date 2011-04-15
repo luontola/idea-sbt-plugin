@@ -14,6 +14,7 @@ public class SbtRunner {
 
     private static final String PROMPT = "\n> ";
     private static final String PROMPT_AFTER_EMPTY_ACTION = "> ";
+    private static final String ERROR_RUNNING_ACTION_PREFIX = "[error] Error running ";
     private static final Logger LOG = Logger.getInstance("#orfjackal.sbt.runner.SbtRunner");
 
     private final ProcessRunner sbt;
@@ -65,15 +66,26 @@ public class SbtRunner {
         return sbt.isAlive();
     }
 
-    public void execute(String action) throws IOException {
+    /**
+     * @param action  the SBT action to run, e.g. "compile"
+     * @return        false if an error was parsed from the output, true otherwise
+     * @throws java.io.IOException
+     */
+    public boolean execute(String action) throws IOException {
         OutputReader output = sbt.subscribeToOutput();
-        sbt.writeInput(action + "\n");
+        try {
+            sbt.writeInput(action + "\n");
 
-        if (action.trim().equals("")) {
-            output.waitForOutput(PROMPT_AFTER_EMPTY_ACTION);
-        } else {
-            output.waitForOutput(PROMPT);
+            if (action.trim().equals("")) {
+                output.waitForOutput(PROMPT_AFTER_EMPTY_ACTION);
+            } else {
+                output.waitForOutput(PROMPT);
+            }
+
+            boolean error = output.endOfOutputContains(ERROR_RUNNING_ACTION_PREFIX);
+            return !error;
+        } finally {
+            output.close();
         }
-        output.close();
     }
 }

@@ -60,6 +60,19 @@ public class CyclicCharBufferTest {
         }
     }
 
+    @Test
+    public void can_check_if_buffer_ends_with_content() {
+        CyclicCharBuffer buffer = new CyclicCharBuffer(3);
+        buffer.append('a');
+        buffer.append('b');
+
+        assertTrue("should end with <ab>", buffer.contentEndsWith("ab"));
+        assertTrue("should end with <b>", buffer.contentEndsWith("b"));
+        assertTrue("should end with <>", buffer.contentEndsWith(""));
+        assertFalse("should end with <a>", buffer.contentEndsWith("a"));
+        assertFalse("should end with <abc>", buffer.contentEndsWith("abc"));
+    }
+
     private static void assertHasString(String expected, CyclicCharBuffer actual) {
         assertEquals("size", expected.length(), actual.length());
         assertEquals("content", expected, actual.toString());

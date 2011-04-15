@@ -10,18 +10,20 @@ public class OutputReader extends FilterReader {
 
     public static final boolean FOUND = true;
     public static final boolean END_OF_OUTPUT = false;
+    private static final int BUFFER_SIZE = 1024;
+    private CyclicCharBuffer buffer = new CyclicCharBuffer(BUFFER_SIZE);
 
     public OutputReader(Reader output) {
         super(output);
     }
 
     public boolean waitForOutput(String expected) throws IOException {
-        CyclicCharBuffer buffer = new CyclicCharBuffer(expected.length());
+        checkExpectedLength(expected);
         int ch;
         while ((ch = read()) != -1) {
             buffer.append((char) ch);
 
-            if (buffer.contentEquals(expected)) {
+            if (buffer.contentEndsWith(expected)) {
                 return FOUND;
             }
         }
@@ -31,6 +33,17 @@ public class OutputReader extends FilterReader {
     public void skipBufferedOutput() throws IOException {
         while (ready()) {
             skip(1);
+        }
+    }
+
+    public boolean endOfOutputContains(String expected) {
+        checkExpectedLength(expected);
+        return buffer.toString().contains(expected);
+    }
+
+    private void checkExpectedLength(String expected) {
+        if (expected.length() > BUFFER_SIZE) {
+            throw new IllegalArgumentException("expected string is too long.");
         }
     }
 }

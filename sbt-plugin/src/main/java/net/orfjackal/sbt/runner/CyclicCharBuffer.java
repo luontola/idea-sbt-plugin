@@ -48,11 +48,16 @@ public class CyclicCharBuffer {
     }
 
     public boolean contentEquals(String that) {
-        if (this.length() != that.length()) {
+        return this.length() == that.length() && contentEndsWith(that);
+    }
+
+    public boolean contentEndsWith(String that) {
+        if (this.length() < that.length()) {
             return false;
         }
-        for (int i = 0; i < length(); i++) {
-            if (this.charAt(i) != that.charAt(i)) {
+        for (int i = 0; i < that.length(); i++) {
+            int j = this.length() - that.length() + i;
+            if (this.charAt(j) != that.charAt(i)) {
                 return false;
             }
         }
