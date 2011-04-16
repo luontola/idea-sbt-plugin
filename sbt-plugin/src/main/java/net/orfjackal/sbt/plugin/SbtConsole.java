@@ -122,7 +122,7 @@ public class SbtConsole {
             @Override
             public void actionPerformed(AnActionEvent event) {
                 try {
-                    runnerComponent.startIfNotStarted();
+                    runnerComponent.startIfNotStarted(false);
                 } catch (IOException e) {
                     logger.error("Failed to start SBT", e);
                 }

@@ -81,7 +81,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
 
     public void executeAndWait(String action) throws IOException {
         saveAllDocuments();
-        startIfNotStarted();
+        startIfNotStarted(true);
         try {
             sbt.execute(action);
 
