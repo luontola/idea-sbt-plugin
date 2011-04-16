@@ -99,8 +99,9 @@ public class SbtConsole {
 
         // org.jetbrains.idea.maven.embedder.MavenConsoleImpl#ensureAttachedToToolWindow
         SimpleToolWindowPanel toolWindowPanel = new SimpleToolWindowPanel(false, true);
+        JComponent consoleComponent = consoleView.getComponent();
+        toolWindowPanel.setContent(consoleComponent);
         toolWindowPanel.setToolbar(createToolbar());
-        toolWindowPanel.setContent(consoleView.getComponent());
         Content content = ContentFactory.SERVICE.getInstance().createContent(toolWindowPanel, title, true);
         content.putUserData(CONSOLE_KEY, SbtConsole.this);
 
@@ -118,27 +119,22 @@ public class SbtConsole {
         JPanel toolbarPanel = new JPanel(new GridLayout());
 
         DefaultActionGroup group = new DefaultActionGroup();
-        group.add(new AnAction("Start SBT", "Start SBT", IconLoader.getIcon("/general/toolWindowRun.png")) {
-            @Override
-            public void actionPerformed(AnActionEvent event) {
-                try {
-                    runnerComponent.startIfNotStarted();
-                } catch (IOException e) {
-                    logger.error("Failed to start SBT", e);
-                }
-            }
+        AnAction startSbtAction = new StartSbtAction();
+        // TODO #22 get this working.
+        // startSbtAction.registerCustomShortcutSet(new CustomShortcutSet(KeyStroke.getKeyStroke("control F5")), ancestor);
 
-            @Override
-            public void update(AnActionEvent event) {
-                if (runnerComponent.isSbtAlive()) {
-                    event.getPresentation().setEnabled(false);
-                } else {
-                    event.getPresentation().setEnabled(true);
-                }
-            }
-        });
-        toolbarPanel.add(
-                ActionManager.getInstance().createActionToolbar("SbtConsoleToolbar", group, false).getComponent());
+        AnAction killSbtAction = new KillSbtAction();
+
+        group.add(startSbtAction);
+        group.add(killSbtAction);
+
+        // Adds "Next/Prev hyperlink", "Use Soft Wraps", and "Scroll to End"
+        AnAction[] actions = consoleView.createConsoleActions();
+        for (AnAction action : actions) {
+          group.add(action);
+        }
+
+        toolbarPanel.add(ActionManager.getInstance().createActionToolbar("SbtConsoleToolbar", group, false).getComponent());
         return toolbarPanel;
     }
 
@@ -163,6 +159,42 @@ public class SbtConsole {
             if (console.isFinished()) {
                 window.getContentManager().removeContent(each, false);
             }
+        }
+    }
+
+    private class StartSbtAction extends AnAction {
+        public StartSbtAction() {
+            super("Start SBT", "Start SBT", IconLoader.getIcon("/general/toolWindowRun.png"));
+        }
+
+        @Override
+        public void actionPerformed(AnActionEvent event) {
+            try {
+                runnerComponent.startIfNotStarted();
+            } catch (IOException e) {
+                logger.error("Failed to start SBT", e);
+            }
+        }
+
+        @Override
+        public void update(AnActionEvent event) {
+            event.getPresentation().setEnabled(!runnerComponent.isSbtAlive());
+        }
+    }
+
+    private class KillSbtAction extends AnAction {
+        public KillSbtAction() {
+            super("Kill SBT", "Forcibly kill the SBT process", IconLoader.getIcon("/debugger/killProcess.png"));
+        }
+
+        @Override
+        public void actionPerformed(AnActionEvent event) {
+            runnerComponent.destroyProcess();
+        }
+
+        @Override
+        public void update(AnActionEvent event) {
+            event.getPresentation().setEnabled(runnerComponent.isSbtAlive());
         }
     }
 }
