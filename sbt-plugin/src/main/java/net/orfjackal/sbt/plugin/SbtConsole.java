@@ -19,6 +19,7 @@ import com.intellij.ui.content.*;
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SbtConsole {
@@ -52,8 +53,10 @@ public class SbtConsole {
     public static TextConsoleBuilder createConsoleBuilder(Project project) {
         TextConsoleBuilder builder = TextConsoleBuilderFactory.getInstance().createBuilder(project);
 
-        Filter[] filters = {new ExceptionFilter(project), new RegexpFilter(project, CONSOLE_FILTER_REGEXP)};
-        for (Filter filter : filters) {
+        final SbtColorizerFilter logLevelFilter = new SbtColorizerFilter();
+        final ExceptionFilter exceptionFilter = new ExceptionFilter(project);
+        final RegexpFilter regexpFilter = new RegexpFilter(project, CONSOLE_FILTER_REGEXP);
+        for (Filter filter : Arrays.asList(exceptionFilter, regexpFilter, logLevelFilter)) {
             builder.addFilter(filter);
         }
         return builder;
