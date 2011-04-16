@@ -114,14 +114,14 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
         return console;
     }
 
-    public final void startIfNotStarted() throws IOException {
+    public final void startIfNotStarted(boolean wait) throws IOException {
         if (!isSbtAlive()) {
             sbt = new SbtRunner(projectDir(), launcherJar(), vmParameters());
             printToMessageWindow();
             if (DEBUG) {
                 printToLogFile();
             }
-            sbt.start();
+            sbt.start(wait);
         }
     }
 
