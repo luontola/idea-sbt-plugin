@@ -18,7 +18,7 @@ public class SbtRunnerTester {
     public static void main(String[] args) throws Exception {
         sbt = new SbtRunner(WORKING_DIR, LAUNCHER_JAR, VM_PARAMS);
         OutputReader output = sbt.subscribeToOutput();
-        sbt.start();
+        sbt.start(true);
 
         Thread t = new Thread(new Runnable() {
             public void run() {
