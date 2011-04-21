@@ -134,7 +134,7 @@ public class SbtConsole {
         // Adds "Next/Prev hyperlink", "Use Soft Wraps", and "Scroll to End"
         AnAction[] actions = consoleView.createConsoleActions();
         for (AnAction action : actions) {
-          group.add(action);
+            group.add(action);
         }
 
         toolbarPanel.add(ActionManager.getInstance().createActionToolbar("SbtConsoleToolbar", group, false).getComponent());

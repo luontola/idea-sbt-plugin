@@ -5,8 +5,7 @@
 package net.orfjackal.sbt.runner;
 
 import java.io.*;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.*;
 
 public class OutputReader extends FilterReader {
 

@@ -4,30 +4,10 @@
 package net.orfjackal.sbt.plugin;
 
 import com.intellij.execution.filters.Filter;
-import com.intellij.execution.filters.OpenFileHyperlinkInfo;
-import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.ide.highlighter.custom.CustomHighlighterColors;
-import com.intellij.openapi.editor.colors.CodeInsightColors;
-import com.intellij.openapi.editor.colors.EditorColorsManager;
-import com.intellij.openapi.editor.colors.TextAttributesKey;
+import com.intellij.openapi.editor.colors.*;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.project.DumbAware;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.util.Trinity;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
 
 /**
  * Rather than reading the ANSI output of SBT, we just highlight with some regexes.

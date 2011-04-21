@@ -12,8 +12,7 @@ import com.intellij.openapi.module.*;
 import com.intellij.openapi.progress.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.*;
 import net.orfjackal.sbt.plugin.settings.*;
 import net.orfjackal.sbt.runner.*;
 
@@ -87,7 +86,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
 
     /**
      * @param action the SBT action to run
-     * @return       false if an error was detected, true otherwise
+     * @return false if an error was detected, true otherwise
      * @throws IOException
      */
     public boolean executeAndWait(String action) throws IOException {
