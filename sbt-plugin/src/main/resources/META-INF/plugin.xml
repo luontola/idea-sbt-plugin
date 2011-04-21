@@ -4,7 +4,7 @@
     <id>${plugin.id}</id>
     <name>${plugin.name}</name>
     <version>${project.version}</version>
-    <idea-version since-build="95.66"/>
+    <idea-version since-build="103.255"/>
     <category>Build</category>
 
     <vendor url="http://www.orfjackal.net">Esko Luontola</vendor>
