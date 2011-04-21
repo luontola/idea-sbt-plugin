@@ -52,6 +52,9 @@ public class ProcessRunner {
     }
 
     public boolean isAlive() {
+        if (process == null) {
+            return false;
+        }
         try {
             process.exitValue();
             return false;
