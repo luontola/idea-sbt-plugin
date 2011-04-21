@@ -1,0 +1,16 @@
+
+You will need to tell Maven that into which directory you have 
+installed IDEA. You can do that by adding something like what follows 
+into your settings.xml file and then build the project with the Maven 
+command "mvn package -P idea-plugin"
+
+<profile>
+    <id>idea-plugin</id>
+    <properties>
+        <idea.version>103.255</idea.version>
+        <idea.home>C:/Program Files (x86)/JetBrains/IntelliJ IDEA Community Edition 10.0.3</idea.home>
+    </properties>
+</profile>
+
+And to build the project within IDEA, you will need to add idea.jar 
+into the IDEA Plugin SDK.

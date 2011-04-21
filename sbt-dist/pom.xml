@@ -28,9 +28,10 @@
 
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.2-beta-5</version>
                 <inherited>false</inherited>
                 <configuration>
-                    <finalName>idea-sbt-plugin-${version}</finalName>
+                    <finalName>idea-sbt-plugin-${project.version}</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
                     <attach>false</attach>
                     <descriptors>
