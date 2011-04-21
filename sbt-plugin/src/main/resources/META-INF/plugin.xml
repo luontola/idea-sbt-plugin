@@ -19,15 +19,15 @@
         <li>Now when you run it, the project will be compiled using SBT</li>
         </ol>
     ]]></description>
-    <!-- TODO: test whether the following issues still exist -->
     <change-notes><![CDATA[
         <ul>
-        <dt><b>Known Issues</b></dt>
-        <li>Assumes that the SBT project has already been created</li>
-        <li>Not tested with multi-module projects</li>
-        </ul>
 
-        <ul>
+        <dt><b>1.2.0 (2011-xx-xx)</b></dt>
+        <li>Fails the build if there is an error in running an action (thanks Jason Zaugg)</li>
+        <li>More toolbar buttons in SBT Console (thanks Jason Zaugg)</li>
+        <li>Colors in SBT console output (thanks Jason Zaugg)</li>
+        <li>Some bug fixes (thanks Jason Zaugg)</li>
+
         <dt><b>1.1.0 (2010-12-02)</b></dt>
         <li>Links from SBT error messages to the editor (thanks Ismael Juma)</li>
         <li>An always available SBT Console tool window (thanks Ismael Juma)</li>
@@ -37,6 +37,7 @@
         <li>Runs SBT commands as "Before launch" tasks in run configurations</li>
         <li>Runs SBT commands which are entered manually to the SBT messages window</li>
         <li>Configures module compiler output directories automatically</li>
+
         </ul>
     ]]></change-notes>
 
