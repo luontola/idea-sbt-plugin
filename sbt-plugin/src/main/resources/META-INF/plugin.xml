@@ -22,7 +22,7 @@
     <change-notes><![CDATA[
         <ul>
 
-        <dt><b>1.2.0 (2011-xx-xx)</b></dt>
+        <dt><b>1.2.0 (2011-04-21)</b></dt>
         <li>Fails the build if there is an error in running an action (thanks Jason Zaugg)</li>
         <li>More toolbar buttons in SBT Console (thanks Jason Zaugg)</li>
         <li>Colors in SBT console output (thanks Jason Zaugg)</li>
