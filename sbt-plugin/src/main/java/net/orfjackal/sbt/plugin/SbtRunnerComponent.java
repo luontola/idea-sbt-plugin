@@ -102,12 +102,17 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
         destroyProcess();
     }
 
+    public void recreateToolWindow() {
+        unregisterToolWindow();
+        registerToolWindow();
+    }
+
     private void registerToolWindow() {
         ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
         if (toolWindowManager != null) {
             ToolWindow toolWindow =
                     toolWindowManager.registerToolWindow(SBT_CONSOLE_TOOL_WINDOW_ID, false, ToolWindowAnchor.BOTTOM, myProject, true);
-            SbtRunnerComponent.getInstance(myProject).getConsole().ensureAttachedToToolWindow(toolWindow);
+            SbtRunnerComponent.getInstance(myProject).getConsole().attachToToolWindow(toolWindow);
         }
     }
 
