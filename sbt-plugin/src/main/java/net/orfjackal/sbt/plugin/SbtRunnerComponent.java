@@ -4,25 +4,44 @@
 
 package net.orfjackal.sbt.plugin;
 
-import com.intellij.openapi.application.*;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.module.*;
-import com.intellij.openapi.progress.*;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.project.DumbAware;
+import com.intellij.openapi.project.DumbAwareRunnable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.*;
-import com.intellij.openapi.vfs.*;
-import net.orfjackal.sbt.plugin.settings.*;
-import net.orfjackal.sbt.runner.*;
+import com.intellij.openapi.roots.CompilerModuleExtension;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowAnchor;
+import com.intellij.openapi.wm.ToolWindowId;
+import com.intellij.openapi.wm.ToolWindowManager;
+import net.orfjackal.sbt.plugin.settings.SbtApplicationSettingsComponent;
+import net.orfjackal.sbt.plugin.settings.SbtProjectSettingsComponent;
+import net.orfjackal.sbt.runner.OutputReader;
+import net.orfjackal.sbt.runner.SbtRunner;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.Properties;
+import java.util.Scanner;
 
-public class SbtRunnerComponent extends AbstractProjectComponent {
+public class SbtRunnerComponent extends AbstractProjectComponent implements DumbAware {
 
     private static final Logger logger = Logger.getInstance(SbtRunnerComponent.class.getName());
     private static final boolean DEBUG = false;
+    private static final String SBT_CONSOLE_TOOL_WINDOW_ID = "SBT Console";
 
     private SbtRunner sbt;
     private final SbtConsole console;
@@ -68,8 +87,35 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
     }
 
     @Override
-    public void projectClosed() {
+    public void projectOpened() {
+        final StartupManager manager = StartupManager.getInstance(myProject);
+        manager.registerPostStartupActivity(new DumbAwareRunnable() {
+            public void run() {
+                registerToolWindow();
+            }
+        });
+    }
+
+    @Override
+    public void disposeComponent() {
+        unregisterToolWindow();
         destroyProcess();
+    }
+
+    private void registerToolWindow() {
+        ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
+        if (toolWindowManager != null) {
+            ToolWindow toolWindow =
+                    toolWindowManager.registerToolWindow(SBT_CONSOLE_TOOL_WINDOW_ID, false, ToolWindowAnchor.BOTTOM, myProject, true);
+            SbtRunnerComponent.getInstance(myProject).getConsole().ensureAttachedToToolWindow(toolWindow);
+        }
+    }
+
+    private void unregisterToolWindow() {
+        ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
+        if (toolWindowManager != null && toolWindowManager.getToolWindow(SBT_CONSOLE_TOOL_WINDOW_ID) != null) {
+          toolWindowManager.unregisterToolWindow(SBT_CONSOLE_TOOL_WINDOW_ID);
+        }
     }
 
     private void queue(final Task.Backgroundable task) {
