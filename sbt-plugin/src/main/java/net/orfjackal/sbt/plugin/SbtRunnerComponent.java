@@ -44,7 +44,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
     private static final String SBT_CONSOLE_TOOL_WINDOW_ID = "SBT Console";
 
     private SbtRunner sbt;
-    private final SbtConsole console;
+    private SbtConsole console;
     private final SbtProjectSettingsComponent projectSettings;
     private final SbtApplicationSettingsComponent applicationSettings;
 
@@ -58,7 +58,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
         super(project);
         this.projectSettings = projectSettings;
         this.applicationSettings = applicationSettings;
-        console = new SbtConsole(MessageBundle.message("sbt.tasks.action"), project, this);
+        console = createConsole(project);
     }
 
     public CompletionSignal executeInBackground(final String action) {
@@ -104,7 +104,12 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
 
     public void recreateToolWindow() {
         unregisterToolWindow();
+        console = createConsole(myProject);
         registerToolWindow();
+    }
+
+    private SbtConsole createConsole(Project project) {
+        return new SbtConsole(MessageBundle.message("sbt.tasks.action"), project, this);
     }
 
     private void registerToolWindow() {
