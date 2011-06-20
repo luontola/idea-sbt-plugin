@@ -16,6 +16,7 @@ public class SbtRunner {
     private static final String FAILED_TO_COMPILE_PROMPT = "Hit enter to retry or 'exit' to quit:";
     private static final String PROMPT_AFTER_EMPTY_ACTION = "> ";
     private static final String ERROR_RUNNING_ACTION_PREFIX = "[error] Error running ";
+    private static final String ERROR_SBT_010_PREFIX = "[error] Total time:";
     private static final Logger LOG = Logger.getInstance("#orfjackal.sbt.runner.SbtRunner");
 
     private final ProcessRunner sbt;
@@ -87,7 +88,7 @@ public class SbtRunner {
         } finally {
             output.close();
         }
-        boolean error = output.endOfOutputContains(ERROR_RUNNING_ACTION_PREFIX);
+        boolean error = output.endOfOutputContains(ERROR_RUNNING_ACTION_PREFIX) || output.endOfOutputContains(ERROR_SBT_010_PREFIX);
         return !error;
     }
 }
