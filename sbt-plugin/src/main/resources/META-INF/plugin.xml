@@ -18,6 +18,11 @@
         <li>Go to the "Before launch" options of a Run Configuration, uncheck "Make" and choose "Run SBT Action / test-compile"</li>
         <li>Now when you run it, the project will be compiled using SBT</li>
         </ol>
+        <ol>
+        <dt><b>Hints</b></dt>
+        <li>Compatible with SBT 0.7.x and SBT 0.10.x, just choose the suitable launcher jar</li>
+        <li>You can run multiple actions as a pre-run step, e.g. ";test-compile;jetty-run"</li>
+        </ol>
     ]]></description>
     <change-notes><![CDATA[
         <ul>
