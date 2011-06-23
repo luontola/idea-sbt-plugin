@@ -15,30 +15,12 @@ public class SbtSettingsForm {
     // org.jetbrains.idea.maven.project.MavenImportingSettingsForm
 
     private final JPanel root;
-    private final JCheckBox useSbtOutputDirs;
     private final JTextField sbtLauncherJarPath;
     private final JTextField vmParameters;
 
     public SbtSettingsForm() {
-        useSbtOutputDirs = new JCheckBox();
         sbtLauncherJarPath = new JTextField();
         vmParameters = new JTextField();
-
-        JPanel projectSettings = new JPanel(new MigLayout());
-        projectSettings.setBorder(BorderFactory.createTitledBorder("Project Settings"));
-        {
-            useSbtOutputDirs.setText("Use SBT output directories *");
-            useSbtOutputDirs.setMnemonic('O');
-
-            JLabel hintText = new JLabel("<html>" +
-                    "* When using Maven together with SBT, it is recommendable to disable " +
-                    "<i>\"Maven / Importing / Use Maven output directories\"</i> in the project settings, " +
-                    "because otherwise it might conflict with this setting." +
-                    "</html>");
-
-            projectSettings.add(useSbtOutputDirs, "wrap");
-            projectSettings.add(hintText, "gapbefore 20, width 400, wrap");
-        }
 
         JPanel ideSettings = new JPanel(new MigLayout("", "[grow]", "[nogrid]"));
         ideSettings.setBorder(BorderFactory.createTitledBorder("IDE Settings"));
@@ -67,7 +49,6 @@ public class SbtSettingsForm {
         }
 
         root = new JPanel(new MigLayout("wrap 1", "[grow]"));
-        root.add(projectSettings, "grow");
         root.add(ideSettings, "grow");
     }
 
@@ -107,13 +88,11 @@ public class SbtSettingsForm {
     }
 
     public void copyTo(SbtProjectSettings projectSettings, SbtApplicationSettings applicationSettings) {
-        projectSettings.setUseSbtOutputDirs(useSbtOutputDirs.isSelected());
         applicationSettings.setSbtLauncherJarPath(sbtLauncherJarPath.getText());
         applicationSettings.setSbtLauncherVmParameters(vmParameters.getText());
     }
 
     public void copyFrom(SbtProjectSettings projectSettings, SbtApplicationSettings applicationSettings) {
-        useSbtOutputDirs.setSelected(projectSettings.isUseSbtOutputDirs());
         sbtLauncherJarPath.setText(new File(applicationSettings.getSbtLauncherJarPath()).getAbsolutePath());
         vmParameters.setText(applicationSettings.getSbtLauncherVmParameters());
     }

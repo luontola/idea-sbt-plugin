@@ -8,10 +8,8 @@ import com.intellij.openapi.application.*;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.module.*;
 import com.intellij.openapi.progress.*;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.*;
 import com.intellij.openapi.vfs.*;
 import net.orfjackal.sbt.plugin.settings.*;
 import net.orfjackal.sbt.runner.*;
@@ -106,10 +104,6 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
         }
 
         VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
-
-        if (projectSettings.getState().isUseSbtOutputDirs()) {
-            configureOutputDirs();
-        }
         return success;
     }
 
@@ -173,92 +167,6 @@ public class SbtRunnerComponent extends AbstractProjectComponent {
         });
         t.setDaemon(true);
         t.start();
-    }
-
-    private void configureOutputDirs() {
-        // org.jetbrains.idea.maven.importing.MavenFoldersImporter#configOutputFolders
-        VirtualFile buildConfig = getBuildPropertiesFile();
-
-        /* The SBT Console can be used to configure SBT for projects that don't use it yet,
-           so the build.properties file may not exist */
-        if (buildConfig != null && buildConfig.exists()) {
-            String scalaVersion = getScalaVersion(buildConfig);
-
-            for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-                String moduleBaseDir = getModuleBaseDir(module);
-                String compilerOutput = moduleBaseDir + "/target/scala_" + scalaVersion + "/classes";
-                String compilerTestOutput = moduleBaseDir + "/target/scala_" + scalaVersion + "/test-classes";
-
-                setModuleOutputDirs(module, compilerOutput, compilerTestOutput);
-                // TODO: folders to exclude: project/boot, project/build/target, lib_managed, src_managed, target
-            }
-        }
-
-        /*
-        if (myImportingSettings.isUseMavenOutput()) {
-            myModel.useModuleOutput(myMavenProject.getOutputDirectory(), myMavenProject.getTestOutputDirectory());
-        }
-        myModel.addExcludedFolder(myMavenProject.getOutputDirectory());
-        myModel.addExcludedFolder(myMavenProject.getTestOutputDirectory());
-        */
-    }
-
-    private String getModuleBaseDir(Module module) {
-        VirtualFile moduleFile = module.getModuleFile();
-        if (moduleFile == null) {
-            throw new IllegalArgumentException("Module file not found: " + module);
-        }
-        return moduleFile.getParent().getUrl();
-    }
-
-    private VirtualFile getBuildPropertiesFile() {
-        VirtualFile baseDir = myProject.getBaseDir();
-        if (baseDir == null) {
-            throw new IllegalArgumentException("Project base directory not found");
-        }
-        return baseDir.findFileByRelativePath("project/build.properties");
-    }
-
-    private String getScalaVersion(VirtualFile buildConfig) {
-        if (!(buildConfig != null && buildConfig.exists())) {
-            throw new IllegalArgumentException("project/build.properties does not exist at " + buildConfig);
-        }
-
-        Properties p = new Properties();
-        try {
-            p.load(buildConfig.getInputStream());
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to read " + buildConfig, e);
-        }
-
-        String scalaVersion = p.getProperty("build.scala.versions");
-        if (scalaVersion == null) {
-            throw new IllegalArgumentException("Scala version not found from " + buildConfig);
-        }
-        return scalaVersion;
-    }
-
-    private void setModuleOutputDirs(final Module module, final String compilerOutput, final String compilerTestOutput) {
-        final Runnable configureModule = new Runnable() {
-            public void run() {
-                // org.jetbrains.idea.maven.importing.MavenRootModelAdapter#getCompilerExtension
-                ModifiableRootModel rootModel = ModuleRootManager.getInstance(module).getModifiableModel();
-                CompilerModuleExtension compiler = rootModel.getModuleExtension(CompilerModuleExtension.class);
-
-                // org.jetbrains.idea.maven.importing.MavenRootModelAdapter#useModuleOutput
-                compiler.inheritCompilerOutputPath(false);
-                compiler.setCompilerOutputPath(compilerOutput);
-                compiler.setCompilerOutputPathForTests(compilerTestOutput);
-
-                rootModel.commit();
-            }
-        };
-        final Application app = ApplicationManager.getApplication();
-        app.invokeAndWait(new Runnable() {
-            public void run() {
-                app.runWriteAction(configureModule);
-            }
-        }, ModalityState.NON_MODAL);
     }
 
     public void destroyProcess() {

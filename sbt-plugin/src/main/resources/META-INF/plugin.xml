@@ -13,11 +13,35 @@
         Integrates with Simple Build Tool (SBT) to enable building Scala projects easily and quickly.
 
         <ol>
-        <dt><b>Quick Start</b></dt>
-        <li>Check that "Settings / SBT" has the right "sbt-launch.jar" file configured</li>
-        <li>Go to the "Before launch" options of a Run Configuration, uncheck "Make" and choose "Run SBT Action / test-compile"</li>
-        <li>Now when you run it, the project will be compiled using SBT</li>
+            <dt><b>Quick Start</b></dt>
+            <li>Create IDEA Project files from SBT build (see below)</li>
+            <li>Check that "Settings / SBT" has the right "sbt-launch.jar" file configured</li>
+            <li>Open the SBT Console Tool Window, manually enter SBT commands</li>
+            <li>Go to the "Before launch" options of a Run Configuration (including the Default Run Configuration),
+                uncheck "Make" and choose "Run SBT Action / test-compile"
+            </li>
+            <li>Now when you run it, the project will be compiled using SBT</li>
         </ol>
+
+        <ol>
+            <dt><b>Creating/Updating IDEA project files (SBT 0.10.x)</b></dt>
+            <li>(One time) Install sbt-idea from the <a href="https://github.com/harrah/xsbt/wiki/sbt-0.10-plugins-list">SBT
+                0.10.x Plugins Page</a>
+                as an SBT Plugin.
+            </li>
+            <li>From a terminal, run <code>sbt "gen-idea with-sbt-classifiers"</code></li>
+            <li>This creates a .idea and .idea_modules folder with project configuration. Open the project with IDEA.</li>
+            <li>After each change to your dependencies, run <code>sbt "gen-idea with-sbt-classifiers"</code> and when prompted reload the project</li>
+        </ol>
+
+        <ol>
+            <dt><b>Creating/Updating IDEA project files (SBT 0.7.x)</b></dt>
+            <li>(One time) Install <a href="https://github.com/mpeltonen/sbt-idea">sbt-idea</a> as an SBT Processor.</li>
+            <li>From a terminal, run <code>sbt "gen-idea with-sbt-classifiers"</code></li>
+            <li>This creates a .idea folder with project configuration. Open the project with IDEA.</li>
+            <li>After each change to your dependencies, run <code>sbt update idea</code> and when prompted reload the project</li>
+        </ol>
+
     ]]></description>
     <change-notes><![CDATA[
         <ul>
