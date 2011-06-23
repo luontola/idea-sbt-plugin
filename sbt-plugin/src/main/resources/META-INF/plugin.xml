@@ -22,6 +22,7 @@
         <dt><b>Hints</b></dt>
         <li>Compatible with SBT 0.7.x and SBT 0.10.x, just choose the suitable launcher jar</li>
         <li>You can run multiple actions as a pre-run step, e.g. ";test-compile;jetty-run"</li>
+        <li>For SBT 0.10.x, use either "exported-products" or "test:exported-products" as the pre-run step. This compiles sources and copies resources.</li>
         </ol>
     ]]></description>
     <change-notes><![CDATA[
