@@ -68,7 +68,8 @@ public class SbtProcessHandler extends ProcessHandler {
                 int len;
                 while ((len = output.read(cbuf)) != -1) {
                     String text = new String(cbuf, 0, len);
-                    process.notifyTextAvailable(text, ProcessOutputTypes.STDOUT);
+                    String withoutCr = text.replace("\r", "");
+                    process.notifyTextAvailable(withoutCr, ProcessOutputTypes.STDOUT);
                 }
             } catch (IOException e) {
                 logger.error(e);
