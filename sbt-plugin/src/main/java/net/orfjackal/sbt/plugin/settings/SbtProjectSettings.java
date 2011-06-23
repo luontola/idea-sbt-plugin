@@ -8,16 +8,6 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 
 public class SbtProjectSettings {
 
-    private boolean useSbtOutputDirs = true;
-
-    public boolean isUseSbtOutputDirs() {
-        return useSbtOutputDirs;
-    }
-
-    public void setUseSbtOutputDirs(boolean useSbtOutputDirs) {
-        this.useSbtOutputDirs = useSbtOutputDirs;
-    }
-
     public boolean equals(Object obj) {
         return EqualsBuilder.reflectionEquals(this, obj);
     }
