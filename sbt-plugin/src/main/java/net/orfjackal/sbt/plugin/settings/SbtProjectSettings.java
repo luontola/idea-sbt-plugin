@@ -7,6 +7,33 @@ package net.orfjackal.sbt.plugin.settings;
 import org.apache.commons.lang.builder.EqualsBuilder;
 
 public class SbtProjectSettings {
+    private String sbtLauncherJarPath = "";
+    private String sbtLauncherVmParameters = "";
+    private boolean useApplicationSettings = true;
+
+    public boolean isUseApplicationSettings() {
+        return useApplicationSettings;
+    }
+
+    public void setUseApplicationSettings(boolean useApplicationSettings) {
+        this.useApplicationSettings = useApplicationSettings;
+    }
+
+    public String getSbtLauncherJarPath() {
+        return sbtLauncherJarPath;
+    }
+
+    public void setSbtLauncherJarPath(String sbtLauncherJarPath) {
+        this.sbtLauncherJarPath = sbtLauncherJarPath;
+    }
+
+    public String getSbtLauncherVmParameters() {
+        return sbtLauncherVmParameters;
+    }
+
+    public void setSbtLauncherVmParameters(String sbtLauncherVmParameters) {
+        this.sbtLauncherVmParameters = sbtLauncherVmParameters;
+    }
 
     public boolean equals(Object obj) {
         return EqualsBuilder.reflectionEquals(this, obj);

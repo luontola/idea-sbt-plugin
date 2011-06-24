@@ -109,6 +109,7 @@ public class SbtConsole {
         JComponent consoleComponent = consoleView.getComponent();
         toolWindowPanel.setContent(consoleComponent);
         toolWindowPanel.setToolbar(createToolbar());
+
         Content content = ContentFactory.SERVICE.getInstance().createContent(toolWindowPanel, title, true);
         content.putUserData(CONSOLE_KEY, SbtConsole.this);
 

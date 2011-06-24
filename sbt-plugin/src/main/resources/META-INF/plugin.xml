@@ -74,7 +74,6 @@
     <extensions defaultExtensionNs="com.intellij">
         <stepsBeforeRunProvider implementation="net.orfjackal.sbt.plugin.SbtBeforeRunTaskProvider"/>
         <projectConfigurable implementation="net.orfjackal.sbt.plugin.settings.SbtConfigurable" order="last"/>
-        <toolWindow id="SBT Console" anchor="bottom" factoryClass="net.orfjackal.sbt.plugin.SbtToolWindowFactory"/>
     </extensions>
 
     <project-components>

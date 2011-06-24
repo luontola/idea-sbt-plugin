@@ -4,13 +4,13 @@
 
 package net.orfjackal.sbt.plugin.settings;
 
-import com.intellij.util.PathUtil;
+import net.orfjackal.sbt.plugin.IO;
 import org.apache.commons.lang.builder.EqualsBuilder;
 
 import java.io.File;
 
 public class SbtApplicationSettings {
-    private static final String DEFAULT_SBT_LAUNCHER = canonicalPathTo(new File(System.getProperty("user.home"), "bin/sbt-launch.jar"));
+    private static final String DEFAULT_SBT_LAUNCHER = IO.canonicalPathTo(new File(System.getProperty("user.home"), "bin/sbt-launch.jar"));
     private static final String DEFAULT_SBT_VM_PARAMETERS = "-Xmx512M -XX:MaxPermSize=256M";
 
     private String sbtLauncherJarPath = DEFAULT_SBT_LAUNCHER;
@@ -21,11 +21,7 @@ public class SbtApplicationSettings {
     }
 
     public void setSbtLauncherJarPath(String sbtLauncherJarPath) {
-        this.sbtLauncherJarPath = canonicalPathTo(new File(sbtLauncherJarPath));
-    }
-
-    private static String canonicalPathTo(File file) {
-        return PathUtil.getCanonicalPath(file.getAbsolutePath());
+        this.sbtLauncherJarPath = IO.canonicalPathTo(new File(sbtLauncherJarPath));
     }
 
     public String getSbtLauncherVmParameters() {

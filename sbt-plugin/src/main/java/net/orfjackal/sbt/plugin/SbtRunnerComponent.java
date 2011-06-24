@@ -107,7 +107,8 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
         if (toolWindowManager != null) {
             ToolWindow toolWindow =
                     toolWindowManager.registerToolWindow(SBT_CONSOLE_TOOL_WINDOW_ID, false, ToolWindowAnchor.BOTTOM, myProject, true);
-            SbtRunnerComponent.getInstance(myProject).getConsole().attachToToolWindow(toolWindow);
+            SbtRunnerComponent sbtRunnerComponent = SbtRunnerComponent.getInstance(myProject);
+            sbtRunnerComponent.getConsole().ensureAttachedToToolWindow(toolWindow);
         }
     }
 
@@ -189,11 +190,11 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
     }
 
     private File launcherJar() {
-        return new File(applicationSettings.getState().getSbtLauncherJarPath());
+        return new File(projectSettings.effectiveSbtLauncherJarPath(applicationSettings));
     }
 
     private String[] vmParameters() {
-        return applicationSettings.getState().getSbtLauncherVmParameters().split("\\s");
+        return projectSettings.effectiveSbtLauncherVmParameters(applicationSettings).split("\\s");
     }
 
     private void printToMessageWindow() {

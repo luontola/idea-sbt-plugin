@@ -25,4 +25,20 @@ public class SbtProjectSettingsComponent extends AbstractProjectComponent implem
     public void loadState(SbtProjectSettings state) {
         this.projectSettings = state;
     }
+
+    public String effectiveSbtLauncherVmParameters(SbtApplicationSettingsComponent applicationSettings) {
+        if (projectSettings.isUseApplicationSettings()) {
+            return applicationSettings.getState().getSbtLauncherVmParameters();
+        } else {
+            return getState().getSbtLauncherVmParameters();
+        }
+    }
+
+    public String effectiveSbtLauncherJarPath(SbtApplicationSettingsComponent applicationSettings) {
+        if (projectSettings.isUseApplicationSettings()) {
+            return applicationSettings.getState().getSbtLauncherJarPath();
+        } else {
+            return getState().getSbtLauncherJarPath();
+        }
+    }
 }
