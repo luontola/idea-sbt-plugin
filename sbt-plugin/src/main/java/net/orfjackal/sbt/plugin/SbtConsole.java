@@ -132,11 +132,9 @@ public class SbtConsole {
         // startSbtAction.registerCustomShortcutSet(new CustomShortcutSet(KeyStroke.getKeyStroke("control F5")), ancestor);
 
         AnAction killSbtAction = new KillSbtAction();
-        AnAction recreateToolWindowAction = new RecreateToolWindowAction();
 
         group.add(startSbtAction);
         group.add(killSbtAction);
-        group.add(recreateToolWindowAction);
 
         // Adds "Next/Prev hyperlink", "Use Soft Wraps", and "Scroll to End"
         AnAction[] actions = consoleView.createConsoleActions();
@@ -208,20 +206,4 @@ public class SbtConsole {
         }
     }
 
-    private class RecreateToolWindowAction extends DumbAwareAction {
-        public RecreateToolWindowAction() {
-            super("Recreate SBT Console Tool Window", "Kills SBT and recreates the SBT Console Tool Window", IconLoader.getIcon("/debugger/restoreLayout.png"));
-        }
-
-        @Override
-        public void actionPerformed(AnActionEvent event) {
-            runnerComponent.destroyProcess();
-            runnerComponent.recreateToolWindow();
-            try {
-                runnerComponent.startIfNotStarted(false);
-            } catch (IOException e) {
-                logger.error("Failed to start SBT", e);
-            }
-        }
-    }
 }
