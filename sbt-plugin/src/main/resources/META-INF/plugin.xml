@@ -26,7 +26,7 @@
             <dt><b>Hints</b></dt>
             <li>Compatible with SBT 0.7.x and SBT 0.10.x, just choose the suitable launcher jar</li>
             <li>You can run multiple actions as a pre-run step, e.g. ";test-compile;jetty-run"</li>
-            <li>For SBT 0.10.x, use either "exported-products" or "test:exported-products" as the pre-run step. This compiles sources and copies resources.</li>
+            <li>For SBT 0.10.x, use either "products" or "test:products" as the pre-run step. This compiles sources and copies resources.</li>
         </ol>
 
         <ol>
@@ -51,6 +51,11 @@
     ]]></description>
     <change-notes><![CDATA[
         <ul>
+
+        <dt><b>1.3.0 (2011-06-25)</b></dt>
+        <li>Workaround IDEA 10.5 Bug that corrupted text entry after a CR was output</li>
+        <li>Allow use of the SBT Console during re-indexing</li>
+        <li>Remove support for synchronizing the IDEA target directory with the SBT target directory after each action</li>
 
         <dt><b>1.2.0 (2011-04-21)</b></dt>
         <li>Fails the build if there is an error in running an action (thanks Jason Zaugg)</li>
