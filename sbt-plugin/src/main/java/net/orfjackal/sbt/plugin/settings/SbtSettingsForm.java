@@ -21,6 +21,8 @@ public class SbtSettingsForm {
     private final JCheckBox useApplicationSettings = new JCheckBox();
     private final JTextField projectSbtLauncherJarPath = new JTextField();
     private final JTextField projectVmParameters = new JTextField();
+    private JLabel projectSbtLauncherLabel = new JLabel("SBT launcher JAR file (sbt-launch.jar)");
+    private JLabel projectVmParametersLabel = new JLabel("VM parameters");
 
     public SbtSettingsForm() {
 
@@ -37,9 +39,8 @@ public class SbtSettingsForm {
             projectSettings.add(useApplicationSettings, "wrap");
         }
         {
-            JLabel label = new JLabel("SBT launcher JAR file (sbt-launch.jar)");
-            label.setDisplayedMnemonic('C');
-            label.setLabelFor(applicationSbtLauncherJarPath);
+            projectSbtLauncherLabel.setDisplayedMnemonic('C');
+            projectSbtLauncherLabel.setLabelFor(applicationSbtLauncherJarPath);
 
             JButton browse = new JButton("...");
             browse.addActionListener(new ActionListener() {
@@ -48,15 +49,14 @@ public class SbtSettingsForm {
                 }
             });
 
-            projectSettings.add(label, "wrap");
+            projectSettings.add(projectSbtLauncherLabel, "wrap");
             projectSettings.add(projectSbtLauncherJarPath, "growx");
             projectSettings.add(browse, "wrap");
         }
         {
-            JLabel label = new JLabel("VM parameters");
-            label.setDisplayedMnemonic('M');
-            label.setLabelFor(projectVmParameters);
-            projectSettings.add(label, "wrap");
+            projectVmParametersLabel.setDisplayedMnemonic('M');
+            projectVmParametersLabel.setLabelFor(projectVmParameters);
+            projectSettings.add(projectVmParametersLabel, "wrap");
             projectSettings.add(projectVmParameters, "growx");
         }
 
@@ -94,8 +94,10 @@ public class SbtSettingsForm {
 
     private void enableOrDisableProjectSettings() {
         boolean enable = !useApplicationSettings.isSelected();
+        projectSbtLauncherLabel.setEnabled(enable);
         projectSbtLauncherJarPath.setEnabled(enable);
         projectVmParameters.setEnabled(enable);
+        projectVmParametersLabel.setEnabled(enable);
     }
 
     private void browseForSbtLauncherJar(JTextField textField) {

@@ -5,6 +5,7 @@
 package net.orfjackal.sbt.plugin;
 
 import com.intellij.util.PathUtil;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 
@@ -14,6 +15,9 @@ public class IO {
     }
 
     public static String absolutePath(String path) {
+        if (StringUtils.isEmpty(path)) {
+            return "";
+        }
         return new File(path).getAbsolutePath();
     }
 }
