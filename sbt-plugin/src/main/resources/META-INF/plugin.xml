@@ -24,28 +24,39 @@
         </ol>
         <ol>
             <dt><b>Hints</b></dt>
-            <li>Compatible with SBT 0.7.x and SBT 0.10.x, just choose the suitable launcher jar</li>
+            <li>Compatible with <a href="http://code.google.com/p/simple-build-tool/wiki/DocumentationHome">SBT 0.7.x</a>
+                and <a href="https://github.com/harrah/xsbt/wiki">SBT 0.10.x</a>, just choose the suitable launcher JAR.</li>
             <li>You can run multiple actions as a pre-run step, e.g. ";test-compile;jetty-run"</li>
-            <li>For SBT 0.10.x, use either "products" or "test:products" as the pre-run step. This compiles sources and copies resources.</li>
+            <li>For SBT 0.10.x, use either "products" or "test:products" as the pre-run step.
+                This compiles sources and copies resources.
+            </li>
+            <li>In a multi-project SBT build, you can choose "Run in current module" to limit the "Before Launch"
+                action to the current module. This speeds up the build.
+             </li>
         </ol>
 
         <ol>
             <dt><b>Creating/Updating IDEA project files (SBT 0.10.x)</b></dt>
-            <li>(One time) Install sbt-idea from the <a href="https://github.com/harrah/xsbt/wiki/sbt-0.10-plugins-list">SBT
-                0.10.x Plugins Page</a>
+            <li>(One time) Install sbt-idea from the
+                <a href="https://github.com/harrah/xsbt/wiki/sbt-0.10-plugins-list">SBT 0.10.x Plugins Page</a>
                 as an SBT Plugin.
             </li>
-            <li>From a terminal, run <code>sbt "gen-idea"</code></li>
-            <li>This creates a .idea and .idea_modules folder with project configuration. Open the project with IDEA.</li>
-            <li>After each change to your dependencies, run <code>sbt "gen-idea"</code> and when prompted reload the project</li>
+            <li>From a terminal, run <code>sbt gen-idea</code></li>
+            <li>This creates a .idea and .idea_modules folder with project configuration. Open the project with IDEA.
+            </li>
+            <li>After each change to your dependencies, run <code>gen-idea</code> in the SBT Console.
+                When prompted, reload the project.
+            </li>
         </ol>
 
         <ol>
             <dt><b>Creating/Updating IDEA project files (SBT 0.7.x)</b></dt>
             <li>(One time) Install <a href="https://github.com/mpeltonen/sbt-idea">sbt-idea</a> as an SBT Processor.</li>
-            <li>From a terminal, run <code>sbt "idea"</code></li>
+            <li>From a terminal, run <code>sbt update idea</code></li>
             <li>This creates a .idea folder with project configuration. Open the project with IDEA.</li>
-            <li>After each change to your dependencies, run <code>sbt update idea</code> and when prompted reload the project</li>
+            <li>After each change to your dependencies, run <code>update idea</code> in the SBT Console.
+                When prompted, reload the project.
+            </li>
         </ol>
 
     ]]></description>
@@ -57,6 +68,7 @@
         <li>Allow use of the SBT Console during re-indexing</li>
         <li>Remove support for synchronizing the IDEA target directory with the SBT target directory after each action</li>
         <li>Allow per-project configuration of SBT Launcher JAR and VM Parameters.</li>
+        <li>Add option to run the "Before launch" tasks in the current module</li>
 
         <dt><b>1.2.0 (2011-04-21)</b></dt>
         <li>Fails the build if there is an error in running an action (thanks Jason Zaugg)</li>

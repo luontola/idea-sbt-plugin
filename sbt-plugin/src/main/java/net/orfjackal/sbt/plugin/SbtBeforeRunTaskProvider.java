@@ -5,9 +5,11 @@
 package net.orfjackal.sbt.plugin;
 
 import com.intellij.execution.BeforeRunTaskProvider;
+import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 
@@ -42,13 +44,14 @@ public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRun
     }
 
     public boolean configureTask(RunConfiguration runConfiguration, SbtBeforeRunTask task) {
-        SelectSbtActionDialog dialog = new SelectSbtActionDialog(project, task.getAction());
+        SelectSbtActionDialog dialog = new SelectSbtActionDialog(project, task.getAction(), task.isRunInCurrentModule());
 
         dialog.show();
         if (!dialog.isOK()) {
             return false;
         }
 
+        task.setRunInCurrentModule(dialog.isRunInCurrentModule());
         task.setAction(dialog.getSelectedAction());
         return true;
     }
@@ -59,13 +62,46 @@ public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRun
             return false;
         }
 
+        if (task.isRunInCurrentModule() && runConfiguration instanceof ModuleBasedConfiguration<?>) {
+            ModuleBasedConfiguration<?> moduleBasedConfiguration = (ModuleBasedConfiguration<?>) runConfiguration;
+            Module[] modules = moduleBasedConfiguration.getModules();
+            if (modules.length == 1) {
+                Module module = modules[0];
+                return runInModule(action, module.getName());
+            }
+        }
+
+        return runDirectly(action);
+    }
+
+    private boolean runInModule(String action, String moduleName) {
+        runAndWait("project " + moduleName);
         try {
-            return SbtRunnerComponent.getInstance(project)
-                    .executeInBackground(action)
-                    .waitForResult();
+            return runAndWait(action);
+        } catch (Exception e) {
+            logger.error(e);
+            return false;
+        } finally {
+            try {
+                runAndWait("project /");
+            } catch (Exception e1) {
+                // ignore
+            }
+        }
+    }
+
+    private boolean runDirectly(String action) {
+        try {
+            return runAndWait(action);
         } catch (Exception e) {
             logger.error(e);
             return false;
         }
+    }
+
+    private boolean runAndWait(String action) {
+        return SbtRunnerComponent.getInstance(project)
+                .executeInBackground(action)
+                .waitForResult();
     }
 }
