@@ -100,7 +100,7 @@ public class SbtSettingsForm {
         projectVmParametersLabel.setEnabled(enable);
     }
 
-    private void browseForSbtLauncherJar(JTextField textField) {
+    private void browseForSbtLauncherJar(JTextField launcherJarTextField) {
         JFileChooser chooser = new JFileChooser();
         chooser.setFileFilter(new FileFilter() {
             public boolean accept(File file) {
@@ -113,13 +113,13 @@ public class SbtSettingsForm {
             }
         });
 
-        File oldValue = new File(textField.getText());
+        File oldValue = new File(launcherJarTextField.getText());
         chooser.setCurrentDirectory(oldValue);
         chooser.setSelectedFile(oldValue);
 
         int result = chooser.showOpenDialog(root);
         if (result == JFileChooser.APPROVE_OPTION) {
-            applicationSbtLauncherJarPath.setText(chooser.getSelectedFile().getAbsolutePath());
+            launcherJarTextField.setText(chooser.getSelectedFile().getAbsolutePath());
         }
     }
 
