@@ -109,7 +109,9 @@ public class SbtConsole {
         SimpleToolWindowPanel toolWindowPanel = new SimpleToolWindowPanel(false, true);
         JComponent consoleComponent = consoleView.getComponent();
         toolWindowPanel.setContent(consoleComponent);
-        toolWindowPanel.setToolbar(createToolbar());
+        StartSbtAction startSbtAction = new StartSbtAction();
+        toolWindowPanel.setToolbar(createToolbar(startSbtAction));
+        startSbtAction.registerCustomShortcutSet(CommonShortcuts.getRerun(), consoleComponent);
 
         Content content = ContentFactory.SERVICE.getInstance().createContent(toolWindowPanel, title, true);
         content.putUserData(CONSOLE_KEY, SbtConsole.this);
@@ -124,13 +126,10 @@ public class SbtConsole {
         }
     }
 
-    private JComponent createToolbar() {
+    private JComponent createToolbar(AnAction startSbtAction) {
         JPanel toolbarPanel = new JPanel(new GridLayout());
 
         DefaultActionGroup group = new DefaultActionGroup();
-        AnAction startSbtAction = new StartSbtAction();
-        // TODO #22 get this working.
-        // startSbtAction.registerCustomShortcutSet(new CustomShortcutSet(KeyStroke.getKeyStroke("control F5")), ancestor);
 
         AnAction killSbtAction = new KillSbtAction();
 
