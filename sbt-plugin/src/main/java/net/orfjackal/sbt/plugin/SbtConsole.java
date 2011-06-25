@@ -5,6 +5,7 @@
 package net.orfjackal.sbt.plugin;
 
 import com.intellij.execution.filters.*;
+import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.process.*;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.actionSystem.*;
@@ -168,6 +169,10 @@ public class SbtConsole {
                 window.getContentManager().removeContent(each, false);
             }
         }
+    }
+
+    public void scrollToEnd() {
+        (((ConsoleViewImpl) consoleView)).scrollToEnd();
     }
 
     private class StartSbtAction extends DumbAwareAction {

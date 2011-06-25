@@ -7,11 +7,26 @@ package net.orfjackal.sbt.plugin;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.ui.layout.ViewContext;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.compiler.CompilationStatusListener;
+import com.intellij.openapi.compiler.CompilerTopics;
+import com.intellij.openapi.compiler.DummyCompileContext;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.wm.StatusBar;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowId;
+import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.util.messages.MessageBus;
+import com.intellij.util.messages.Topic;
 
 public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRunTask> {
 
@@ -62,6 +77,17 @@ public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRun
             return false;
         }
 
+        boolean runResult = run(runConfiguration, task, action);
+        if (!runResult) {
+            final Project project = PlatformDataKeys.PROJECT.getData(dataContext);
+            if (project != null) {
+                notifyFailureAndActivateToolWindow(action, project);
+            }
+        }
+        return runResult;
+    }
+
+    private boolean run(RunConfiguration runConfiguration, SbtBeforeRunTask task, String action) {
         if (task.isRunInCurrentModule() && runConfiguration instanceof ModuleBasedConfiguration<?>) {
             ModuleBasedConfiguration<?> moduleBasedConfiguration = (ModuleBasedConfiguration<?>) runConfiguration;
             Module[] modules = moduleBasedConfiguration.getModules();
@@ -103,5 +129,20 @@ public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRun
         return SbtRunnerComponent.getInstance(project)
                 .executeInBackground(action)
                 .waitForResult();
+    }
+
+    private void notifyFailureAndActivateToolWindow(final String action, final Project project) {
+        ApplicationManager.getApplication().invokeAndWait(new Runnable() {
+            public void run() {
+                String toolWindowId = MessageBundle.message("sbt.console.id");
+                String message = "SBT action \"" + action + "\" failed.";
+                ToolWindowManager.getInstance(project).notifyByBalloon(toolWindowId, MessageType.ERROR, message);
+                final ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(toolWindowId);
+                if (window != null && !window.isVisible()) {
+                    window.activate(null, false);
+                }
+                SbtRunnerComponent.getInstance(project).getConsole().scrollToEnd();
+            }
+        }, ModalityState.NON_MODAL);
     }
 }
