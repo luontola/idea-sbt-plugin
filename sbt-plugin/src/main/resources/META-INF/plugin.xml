@@ -17,7 +17,7 @@
             <li>Create IDEA Project files from SBT build (see below)</li>
             <li>Check that "Settings / SBT" has the right "sbt-launch.jar" file configured</li>
             <li>Open the SBT Console Tool Window, manually enter SBT commands</li>
-            <li>Go to the "Before launch" options of a Run Configuration (including the Default Run Configuration),
+            <li>Go to the "Before Launch" options of a Run Configuration (including the Default Run Configuration),
                 uncheck "Make" and choose "Run SBT Action / test-compile"
             </li>
             <li>Now when you run it, the project will be compiled using SBT</li>
@@ -68,7 +68,8 @@
         <li>Allow use of the SBT Console during re-indexing</li>
         <li>Remove support for synchronizing the IDEA target directory with the SBT target directory after each action</li>
         <li>Allow per-project configuration of SBT Launcher JAR and VM Parameters.</li>
-        <li>Add option to run the "Before launch" tasks in the current module</li>
+        <li>Add option to run the "Before Launch" tasks in the current module</li>
+        <li>Improve notification of build failures in a "Before Launch" task</li>
 
         <dt><b>1.2.0 (2011-04-21)</b></dt>
         <li>Fails the build if there is an error in running an action (thanks Jason Zaugg)</li>
@@ -82,7 +83,7 @@
         <li>VM parameters for SBT can be changed from the plugin settings (thanks Jason Zaugg)</li>
 
         <dt><b>1.0.0 (2010-06-17)</b></dt>
-        <li>Runs SBT commands as "Before launch" tasks in run configurations</li>
+        <li>Runs SBT commands as "Before Launch" tasks in run configurations</li>
         <li>Runs SBT commands which are entered manually to the SBT messages window</li>
         <li>Configures module compiler output directories automatically</li>
 
