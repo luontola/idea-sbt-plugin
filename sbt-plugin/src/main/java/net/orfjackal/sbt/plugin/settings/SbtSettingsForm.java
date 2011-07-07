@@ -4,6 +4,7 @@
 
 package net.orfjackal.sbt.plugin.settings;
 
+import com.intellij.openapi.util.io.FileUtil;
 import net.miginfocom.swing.MigLayout;
 import net.orfjackal.sbt.plugin.IO;
 
@@ -137,18 +138,18 @@ public class SbtSettingsForm {
 
     public void copyTo(SbtProjectSettings projectSettings, SbtApplicationSettings applicationSettings) {
         projectSettings.setUseApplicationSettings(useApplicationSettings.isSelected());
-        projectSettings.setSbtLauncherJarPath(projectSbtLauncherJarPath.getText());
+        projectSettings.setSbtLauncherJarPath(FileUtil.toSystemIndependentName(projectSbtLauncherJarPath.getText()));
         projectSettings.setSbtLauncherVmParameters(projectVmParameters.getText());
-        applicationSettings.setSbtLauncherJarPath(applicationSbtLauncherJarPath.getText());
+        applicationSettings.setSbtLauncherJarPath(FileUtil.toSystemIndependentName(applicationSbtLauncherJarPath.getText()));
         applicationSettings.setSbtLauncherVmParameters(applicationVmParameters.getText());
         enableOrDisableProjectSettings();
     }
 
     public void copyFrom(SbtProjectSettings projectSettings, SbtApplicationSettings applicationSettings) {
-        projectSbtLauncherJarPath.setText(IO.absolutePath(projectSettings.getSbtLauncherJarPath()));
+        projectSbtLauncherJarPath.setText(FileUtil.toSystemDependentName(IO.absolutePath(projectSettings.getSbtLauncherJarPath())));
         projectVmParameters.setText(projectSettings.getSbtLauncherVmParameters());
         useApplicationSettings.setSelected(projectSettings.isUseApplicationSettings());
-        applicationSbtLauncherJarPath.setText(IO.absolutePath(applicationSettings.getSbtLauncherJarPath()));
+        applicationSbtLauncherJarPath.setText(FileUtil.toSystemDependentName(IO.absolutePath(applicationSettings.getSbtLauncherJarPath())));
         applicationVmParameters.setText(applicationSettings.getSbtLauncherVmParameters());
     }
 
