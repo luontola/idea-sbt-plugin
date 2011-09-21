@@ -16,6 +16,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.util.*;
 import com.intellij.openapi.wm.*;
+import com.intellij.psi.search.EverythingGlobalScope;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.content.*;
 
 import javax.swing.*;
@@ -56,7 +58,7 @@ public class SbtConsole {
         TextConsoleBuilder builder = TextConsoleBuilderFactory.getInstance().createBuilder(project);
 
         final SbtColorizerFilter logLevelFilter = new SbtColorizerFilter();
-        final ExceptionFilter exceptionFilter = new ExceptionFilter(project);
+        final ExceptionFilter exceptionFilter = new ExceptionFilter(GlobalSearchScope.allScope(project));
         final RegexpFilter regexpFilter = new RegexpFilter(project, CONSOLE_FILTER_REGEXP);
         for (Filter filter : Arrays.asList(exceptionFilter, regexpFilter, logLevelFilter)) {
             builder.addFilter(filter);
