@@ -16,7 +16,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.util.*;
 import com.intellij.openapi.wm.*;
-import com.intellij.psi.search.EverythingGlobalScope;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.content.*;
 
@@ -88,7 +87,7 @@ public class SbtConsole {
                                 window.getContentManager().removeContent(each, false);
                             }
                         }
-                        ensureAttachedToToolWindow(window);
+                        ensureAttachedToToolWindow(window, true);
                     }
                 });
             }
@@ -99,11 +98,16 @@ public class SbtConsole {
         });
     }
 
-    public final void ensureAttachedToToolWindow(ToolWindow window) {
+    public final void ensureAttachedToToolWindow(ToolWindow window, boolean activate) {
         if (!isOpen.compareAndSet(false, true)) {
             return;
         }
         attachToToolWindow(window);
+        if (activate) {
+            if (!window.isActive()) {
+                window.activate(null, false);
+            }
+        }
     }
 
     public void attachToToolWindow(ToolWindow window) {
@@ -122,10 +126,6 @@ public class SbtConsole {
         window.getContentManager().setSelectedContent(content);
 
         removeUnusedTabs(window, content);
-
-        if (!window.isActive()) {
-            window.activate(null, false);
-        }
     }
 
     private JComponent createToolbar(AnAction startSbtAction) {

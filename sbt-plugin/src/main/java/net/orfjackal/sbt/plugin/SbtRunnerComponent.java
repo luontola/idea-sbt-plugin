@@ -4,7 +4,6 @@
 
 package net.orfjackal.sbt.plugin;
 
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.AbstractProjectComponent;
@@ -24,7 +23,6 @@ import net.orfjackal.sbt.runner.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Properties;
 import java.util.Scanner;
 
 public class SbtRunnerComponent extends AbstractProjectComponent implements DumbAware {
@@ -108,7 +106,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
             ToolWindow toolWindow =
                     toolWindowManager.registerToolWindow(SBT_CONSOLE_TOOL_WINDOW_ID, false, ToolWindowAnchor.BOTTOM, myProject, true);
             SbtRunnerComponent sbtRunnerComponent = SbtRunnerComponent.getInstance(myProject);
-            sbtRunnerComponent.getConsole().ensureAttachedToToolWindow(toolWindow);
+            sbtRunnerComponent.getConsole().ensureAttachedToToolWindow(toolWindow, false);
         }
     }
 
