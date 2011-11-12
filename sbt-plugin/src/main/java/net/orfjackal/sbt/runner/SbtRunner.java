@@ -35,10 +35,12 @@ public class SbtRunner {
         List<String> command = new ArrayList<String>();
 
         command.add("java");
+        command.add("-Dsbt.log.noformat=true");
+        // Attempted fix for https://github.com/orfjackal/idea-sbt-plugin/issues/49
+        // Needs to be tested on windows.
+        // command.add("-Djline.terminal=jline.UnsupportedTerminal");
         command.addAll(Arrays.asList(vmParameters));
         command.addAll(Arrays.asList(
-                "-Dsbt.log.noformat=true",
-                "-Djline.terminal=jline.UnsupportedTerminal",
                 "-jar",
                 launcherJar.getAbsolutePath()
         ));
