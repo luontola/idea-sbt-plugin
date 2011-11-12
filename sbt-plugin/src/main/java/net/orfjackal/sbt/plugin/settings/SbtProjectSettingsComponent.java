@@ -6,6 +6,9 @@ package net.orfjackal.sbt.plugin.settings;
 
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
+
+import java.io.File;
 
 @State(name = "SbtSettings", storages = {
         @Storage(id = "default", file = "$PROJECT_FILE$", scheme = StorageScheme.DEFAULT),
@@ -39,6 +42,15 @@ public class SbtProjectSettingsComponent extends AbstractProjectComponent implem
             return applicationSettings.getState().getSbtLauncherJarPath();
         } else {
             return getState().getSbtLauncherJarPath();
+        }
+    }
+
+    public String getJavaCommand(SbtApplicationSettingsComponent applicationSettings) {
+        if (applicationSettings.getState().isUseCustomJdk()) {
+            String systemDependentJdkHome = FileUtil.toSystemDependentName(applicationSettings.getState().getJdkHome());
+            return systemDependentJdkHome + File.separator + "bin" + File.separator + "java";
+        } else {
+            return "java";
         }
     }
 }

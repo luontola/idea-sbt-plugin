@@ -15,6 +15,8 @@ public class SbtApplicationSettings {
 
     private String sbtLauncherJarPath = DEFAULT_SBT_LAUNCHER;
     private String sbtLauncherVmParameters = DEFAULT_SBT_VM_PARAMETERS;
+    private boolean useCustomJdk = false;
+    private String jdkHome = null;
 
     public String getSbtLauncherJarPath() {
         return sbtLauncherJarPath;
@@ -30,6 +32,22 @@ public class SbtApplicationSettings {
 
     public void setSbtLauncherVmParameters(String sbtLauncherVmParameters) {
         this.sbtLauncherVmParameters = sbtLauncherVmParameters;
+    }
+
+    public boolean isUseCustomJdk() {
+        return useCustomJdk;
+    }
+
+    public void setUseCustomJdk(boolean useCustomJdk) {
+        this.useCustomJdk = useCustomJdk;
+    }
+
+    public String getJdkHome() {
+        return jdkHome;
+    }
+
+    public void setJdkHome(String jdkHome) {
+        this.jdkHome = jdkHome;
     }
 
     public boolean equals(Object obj) {

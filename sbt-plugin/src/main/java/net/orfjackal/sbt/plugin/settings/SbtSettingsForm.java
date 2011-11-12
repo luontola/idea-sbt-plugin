@@ -4,6 +4,7 @@
 
 package net.orfjackal.sbt.plugin.settings;
 
+import com.intellij.execution.ui.AlternativeJREPanel;
 import com.intellij.openapi.util.io.FileUtil;
 import net.miginfocom.swing.MigLayout;
 import net.orfjackal.sbt.plugin.IO;
@@ -24,6 +25,7 @@ public class SbtSettingsForm {
     private final JTextField projectVmParameters = new JTextField();
     private JLabel projectSbtLauncherLabel = new JLabel("SBT launcher JAR file (sbt-launch.jar)");
     private JLabel projectVmParametersLabel = new JLabel("VM parameters");
+    private AlternativeJREPanel jreChooser = new AlternativeJREPanel();
 
     public SbtSettingsForm() {
 
@@ -84,7 +86,8 @@ public class SbtSettingsForm {
             label.setDisplayedMnemonic('V');
             label.setLabelFor(applicationVmParameters);
             ideSettings.add(label, "wrap");
-            ideSettings.add(applicationVmParameters, "growx");
+            ideSettings.add(applicationVmParameters, "wrap, growx");
+            ideSettings.add(jreChooser, "growx");
         }
 
         root = new JPanel(new MigLayout("wrap 1", "[grow]"));
@@ -142,6 +145,8 @@ public class SbtSettingsForm {
         projectSettings.setSbtLauncherVmParameters(projectVmParameters.getText());
         applicationSettings.setSbtLauncherJarPath(FileUtil.toSystemIndependentName(applicationSbtLauncherJarPath.getText()));
         applicationSettings.setSbtLauncherVmParameters(applicationVmParameters.getText());
+        applicationSettings.setUseCustomJdk(jreChooser.isPathEnabled());
+        applicationSettings.setJdkHome(jreChooser.getPath());
         enableOrDisableProjectSettings();
     }
 
@@ -151,6 +156,7 @@ public class SbtSettingsForm {
         useApplicationSettings.setSelected(projectSettings.isUseApplicationSettings());
         applicationSbtLauncherJarPath.setText(FileUtil.toSystemDependentName(IO.absolutePath(applicationSettings.getSbtLauncherJarPath())));
         applicationVmParameters.setText(applicationSettings.getSbtLauncherVmParameters());
+        jreChooser.init(applicationSettings.getJdkHome(), applicationSettings.isUseCustomJdk());
     }
 
     public static void main(String[] args) {
