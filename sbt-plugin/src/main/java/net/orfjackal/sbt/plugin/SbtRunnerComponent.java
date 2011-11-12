@@ -33,6 +33,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
 
     private SbtRunner sbt;
     private SbtConsole console;
+    private Project project;
     private final SbtProjectSettingsComponent projectSettings;
     private final SbtApplicationSettingsComponent applicationSettings;
 
@@ -44,9 +45,9 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
                                  SbtProjectSettingsComponent projectSettings,
                                  SbtApplicationSettingsComponent applicationSettings) {
         super(project);
+        this.project = project;
         this.projectSettings = projectSettings;
         this.applicationSettings = applicationSettings;
-        console = createConsole(project);
     }
 
     public CompletionSignal executeInBackground(final String action) {
@@ -79,6 +80,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
         final StartupManager manager = StartupManager.getInstance(myProject);
         manager.registerPostStartupActivity(new DumbAwareRunnable() {
             public void run() {
+                console = createConsole(project);
                 registerToolWindow();
             }
         });

@@ -4,13 +4,23 @@
 
 package net.orfjackal.sbt.plugin;
 
+import com.intellij.execution.console.ConsoleHistoryController;
+import com.intellij.execution.console.LanguageConsoleImpl;
+import com.intellij.execution.console.LanguageConsoleViewImpl;
 import com.intellij.execution.filters.*;
 import com.intellij.execution.impl.ConsoleViewImpl;
+import com.intellij.execution.impl.EditorHyperlinkSupport;
 import com.intellij.execution.process.*;
+import com.intellij.execution.runners.AbstractConsoleRunnerWithHistory;
+import com.intellij.execution.runners.ConsoleExecuteActionHandler;
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.ide.CommonActionsManager;
+import com.intellij.lang.Language;
+import com.intellij.lang.StdLanguages;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
@@ -50,19 +60,30 @@ public class SbtConsole {
     }
 
     private static ConsoleView createConsoleView(Project project) {
-        return createConsoleBuilder(project).getConsole();
+        final LanguageConsoleImpl sbtLanguageConsole = new LanguageConsoleImpl(project, "SBT", StdLanguages.TEXT);
+        LanguageConsoleViewImpl consoleView = new LanguageConsoleViewImpl(project, sbtLanguageConsole) {
+            @Override
+            public void attachToProcess(ProcessHandler processHandler) {
+                super.attachToProcess(processHandler);
+                ConsoleExecuteActionHandler executeActionHandler = new ConsoleExecuteActionHandler(processHandler, false);
+                // SBT echos the command, don't add it to the output a second time.
+                executeActionHandler.setAddCurrentToHistory(false);
+                ConsoleHistoryController historyController = new ConsoleHistoryController("scala", null, sbtLanguageConsole, executeActionHandler.getConsoleHistoryModel());
+                historyController.install();
+                AnAction action = AbstractConsoleRunnerWithHistory.createConsoleExecAction(sbtLanguageConsole, processHandler, executeActionHandler);
+                action.registerCustomShortcutSet(action.getShortcutSet(), sbtLanguageConsole.getComponent());
+            }
+
+        };
+        addFilters(project, consoleView);
+
+        return consoleView;
     }
 
-    public static TextConsoleBuilder createConsoleBuilder(Project project) {
-        TextConsoleBuilder builder = TextConsoleBuilderFactory.getInstance().createBuilder(project);
-
-        final SbtColorizerFilter logLevelFilter = new SbtColorizerFilter();
-        final ExceptionFilter exceptionFilter = new ExceptionFilter(GlobalSearchScope.allScope(project));
-        final RegexpFilter regexpFilter = new RegexpFilter(project, CONSOLE_FILTER_REGEXP);
-        for (Filter filter : Arrays.asList(exceptionFilter, regexpFilter, logLevelFilter)) {
-            builder.addFilter(filter);
-        }
-        return builder;
+    private static void addFilters(Project project, LanguageConsoleViewImpl consoleView) {
+        consoleView.addMessageFilter(new ExceptionFilter(GlobalSearchScope.allScope(project)));
+        consoleView.addMessageFilter(new RegexpFilter(project, CONSOLE_FILTER_REGEXP));
+        consoleView.addMessageFilter(new SbtColorizerFilter());
     }
 
     public boolean isFinished() {

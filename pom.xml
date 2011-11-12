@@ -4,7 +4,7 @@
 
     <groupId>net.orfjackal.idea-sbt-plugin</groupId>
     <artifactId>sbt</artifactId>
-    <version>1.3.2-SNAPSHOT</version>
+    <version>1.4.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -19,10 +19,12 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- The maven-assembly-plugin will fail to find all dependencies unless these are set to proper values.
-             If you need to build this project on your own computer, please override these values in your settings.xml
-             or at least do not commit any changes to this part of the POM. -->
-        <idea.version>103.255</idea.version>
-        <idea.home>C:/Program Files (x86)/JetBrains/IntelliJ IDEA Community Edition 10.0.3</idea.home>
+             If you need to build this project on your own computer, please override these values on the
+             command line with -Didea.home=...
+
+             Do not commit any changes to this part of the POM. -->
+        <idea.version>110.187</idea.version>
+        <idea.home>/Applications/Nika-IU-110.187.app</idea.home>
     </properties>
 
     <name>SBT</name>

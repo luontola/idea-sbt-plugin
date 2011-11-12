@@ -4,7 +4,7 @@
     <id>${plugin.id}</id>
     <name>${plugin.name}</name>
     <version>${project.version}</version>
-    <idea-version since-build="103.255"/>
+    <idea-version since-build="110.187"/>
     <category>Build</category>
 
     <vendor url="http://www.orfjackal.net">Esko Luontola</vendor>
@@ -12,58 +12,23 @@
     <description><![CDATA[
         Integrates with Simple Build Tool (SBT) to enable building Scala projects easily and quickly.
 
+        <p>
+
+        Offers a console where SBT commands can be entered interactively, and a Before Run task
+        to delegate project compilation to SBT, as an alternative to the built in IntelliJ Make.
+        <p>
+
         <a href="https://github.com/orfjackal/idea-sbt-plugin/wiki">Documentation, Screenshots</a>
-
-        <ol>
-            <dt><b>Quick Start</b></dt>
-            <li>Create IDEA Project files from SBT build (see below)</li>
-            <li>Check that "Settings / SBT" has the right "sbt-launch.jar" file configured</li>
-            <li>Open the SBT Console Tool Window, manually enter SBT commands</li>
-            <li>Go to the "Before Launch" options of a Run Configuration (including the Default Run Configuration),
-                uncheck "Make" and choose "Run SBT Action / test-compile"
-            </li>
-            <li>Now when you run it, the project will be compiled using SBT</li>
-        </ol>
-        <ol>
-            <dt><b>Hints</b></dt>
-            <li>Compatible with <a href="http://code.google.com/p/simple-build-tool/wiki/DocumentationHome">SBT 0.7.x</a>
-                and <a href="https://github.com/harrah/xsbt/wiki">SBT 0.10.x</a>, just choose the suitable launcher JAR.</li>
-            <li>You can run multiple actions as a pre-run step, e.g. ";test-compile;jetty-run"</li>
-            <li>For SBT 0.10.x, use either "products" or "test:products" as the pre-run step.
-                This compiles sources and copies resources.
-            </li>
-            <li>In a multi-project SBT build, you can choose "Run in current module" to limit the "Before Launch"
-                action to the current module. This speeds up the build.
-             </li>
-        </ol>
-
-        <ol>
-            <dt><b>Creating/Updating IDEA project files (SBT 0.10.x)</b></dt>
-            <li>(One time) Install sbt-idea from the
-                <a href="https://github.com/harrah/xsbt/wiki/sbt-0.10-plugins-list">SBT 0.10.x Plugins Page</a>
-                as an SBT Plugin.
-            </li>
-            <li>From a terminal, run <code>sbt gen-idea</code></li>
-            <li>This creates a .idea and .idea_modules folder with project configuration. Open the project with IDEA.
-            </li>
-            <li>After each change to your dependencies, run <code>gen-idea</code> in the SBT Console.
-                When prompted, reload the project.
-            </li>
-        </ol>
-
-        <ol>
-            <dt><b>Creating/Updating IDEA project files (SBT 0.7.x)</b></dt>
-            <li>(One time) Install <a href="https://github.com/mpeltonen/sbt-idea">sbt-idea</a> as an SBT Processor.</li>
-            <li>From a terminal, run <code>sbt update idea</code></li>
-            <li>This creates a .idea folder with project configuration. Open the project with IDEA.</li>
-            <li>After each change to your dependencies, run <code>update idea</code> in the SBT Console.
-                When prompted, reload the project.
-            </li>
-        </ol>
-
     ]]></description>
     <change-notes><![CDATA[
         <ul>
+
+        <dt><b>1.4.0 (in progress)</b></dt>
+        <li>Require IntelliJ 11 (Nika)</li>
+        <li>Change UI for the console to use a 'Language Console' <a href="https://github.com/orfjackal/idea-sbt-plugin/issues/42">#42</a></li>
+
+        <dt><b>1.3.1 (2011-09-22)</b></dt>
+        <li>Compability with IDEA 11</li>
 
         <dt><b>1.3.0 (2011-06-25)</b></dt>
         <li>Workaround IDEA 10.5 Bug that corrupted text entry after a CR was output</li>
