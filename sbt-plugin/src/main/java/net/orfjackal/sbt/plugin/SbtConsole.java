@@ -28,6 +28,7 @@ import com.intellij.openapi.util.*;
 import com.intellij.openapi.wm.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.content.*;
+import net.orfjackal.sbt.plugin.sbtlang.SbtLanguage;
 
 import javax.swing.*;
 import java.awt.*;
@@ -60,7 +61,7 @@ public class SbtConsole {
     }
 
     private static ConsoleView createConsoleView(Project project) {
-        final LanguageConsoleImpl sbtLanguageConsole = new LanguageConsoleImpl(project, "SBT", StdLanguages.TEXT);
+        final LanguageConsoleImpl sbtLanguageConsole = new LanguageConsoleImpl(project, "SBT", SbtLanguage.INSTANCE);
         LanguageConsoleViewImpl consoleView = new LanguageConsoleViewImpl(project, sbtLanguageConsole) {
             @Override
             public void attachToProcess(ProcessHandler processHandler) {
