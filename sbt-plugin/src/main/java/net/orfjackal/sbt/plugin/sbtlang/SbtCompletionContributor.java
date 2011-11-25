@@ -39,10 +39,10 @@ public class SbtCompletionContributor extends CompletionContributor {
     public static void addWordCompletionVariants(CompletionResultSet result, CompletionParameters parameters, Set<String> excludes) {
         int startOffset = parameters.getOffset();
         PsiElement insertedElement = parameters.getPosition();
-        final CompletionResultSet plainResultSet = result.withPrefixMatcher(CompletionUtil.findIdentifierPrefix(insertedElement,
-                startOffset,
-                character().javaIdentifierPart().andNot(character().equalTo('$')),
-                character().javaIdentifierStart()));
+        // "test-only *A<CTRL-SPACE> -- opta" gives a prefix of "test-only *A"
+        String prefix = insertedElement.getText().substring(0, startOffset);
+
+        final CompletionResultSet plainResultSet = result.withPrefixMatcher(prefix);
         List<String> strings = Arrays.asList("compile", "run", "test:compile", "test", "project", "projects", "inspect", "show", "last", "last-grep");
         for (String string : strings) {
             final LookupElement item = LookupElementBuilder.create(string);
