@@ -192,7 +192,9 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
     }
 
     private String[] vmParameters() {
-        return projectSettings.effectiveSbtLauncherVmParameters(applicationSettings).split("\\s");
+        String[] split = projectSettings.effectiveSbtLauncherVmParameters(applicationSettings).split("\\s");
+        if (split.length == 1 && split[0].equals("")) return new String[0];
+        else return split;
     }
 
     private void printToMessageWindow() {
