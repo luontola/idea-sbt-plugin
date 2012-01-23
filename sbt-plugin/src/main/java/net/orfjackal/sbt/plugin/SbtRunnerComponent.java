@@ -170,7 +170,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
 
     public final void startIfNotStarted(boolean wait) throws IOException {
         if (!isSbtAlive()) {
-            sbt = new SbtRunner(projectDir(), launcherJar(), vmParameters());
+            sbt = new SbtRunner(projectSettings.getJavaCommand(applicationSettings), projectDir(), launcherJar(), vmParameters());
             printToMessageWindow();
             if (DEBUG) {
                 printToLogFile();

@@ -21,20 +21,20 @@ public class SbtRunner {
 
     private final ProcessRunner sbt;
 
-    public SbtRunner(File workingDir, File launcherJar, String[] vmParameters) {
+    public SbtRunner(String javaCommand, File workingDir, File launcherJar, String[] vmParameters) {
         if (!workingDir.isDirectory()) {
             throw new IllegalArgumentException("Working directory does not exist: " + workingDir);
         }
         if (!launcherJar.isFile()) {
             throw new IllegalArgumentException("Launcher JAR file does not exist: " + launcherJar);
         }
-        sbt = new ProcessRunner(workingDir, getCommand(launcherJar, vmParameters));
+        sbt = new ProcessRunner(workingDir, getCommand(javaCommand, launcherJar, vmParameters));
     }
 
-    private static String[] getCommand(File launcherJar, String[] vmParameters) {
+    private static String[] getCommand(String javaCommand, File launcherJar, String[] vmParameters) {
         List<String> command = new ArrayList<String>();
 
-        command.add("java");
+        command.add(javaCommand);
         command.add("-Dsbt.log.noformat=true");
         // Attempted fix for https://github.com/orfjackal/idea-sbt-plugin/issues/49
         // Needs to be tested on windows.
