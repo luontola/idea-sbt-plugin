@@ -34,10 +34,6 @@ public class SelectSbtActionDialog extends DialogWrapper {
 
     private static String[] combineActions() {
         List<String> buffer = new ArrayList<String>();
-        buffer.add(SBT_07_HEADER);
-        buffer.addAll(Arrays.asList(SBT_07_ACTIONS));
-        buffer.add(SEPARATOR);
-        buffer.add(SBT_10_HEADER);
         buffer.addAll(Arrays.asList(SBT_10_ACTIONS));
         return buffer.toArray(new String[buffer.size()]);
     }

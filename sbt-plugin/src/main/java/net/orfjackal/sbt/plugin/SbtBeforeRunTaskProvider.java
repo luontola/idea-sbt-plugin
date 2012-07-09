@@ -7,6 +7,7 @@ package net.orfjackal.sbt.plugin;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.layout.ViewContext;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
@@ -43,19 +44,30 @@ public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRun
         return TASK_ID;
     }
 
-    public String getDescription(RunConfiguration runConfiguration, SbtBeforeRunTask task) {
+    // Leda
+    public String getName() {
+        return "SBT";
+    }
+
+    public String getDescription(SbtBeforeRunTask task) {
         String desc = task.getAction();
         return desc == null
                 ? MessageBundle.message("sbt.tasks.before.run.empty")
                 : MessageBundle.message("sbt.tasks.before.run", desc);
     }
 
-    public boolean hasConfigurationButton() {
+    // Leda
+    public boolean isConfigurable() {
+        return true;
+    }
+
+    // Leda
+    public boolean canExecuteTask(RunConfiguration runConfiguration, SbtBeforeRunTask sbtBeforeRunTask) {
         return true;
     }
 
     public SbtBeforeRunTask createTask(RunConfiguration runConfiguration) {
-        return new SbtBeforeRunTask();
+        return new SbtBeforeRunTask(TASK_ID);
     }
 
     public boolean configureTask(RunConfiguration runConfiguration, SbtBeforeRunTask task) {
@@ -71,6 +83,7 @@ public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRun
         return true;
     }
 
+    // Nika
     public boolean executeTask(DataContext dataContext, RunConfiguration runConfiguration, final SbtBeforeRunTask task) {
         final String action = task.getAction();
         if (action == null) {
@@ -85,6 +98,12 @@ public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRun
             }
         }
         return runResult;
+    }
+
+    // Leda
+    public boolean executeTask(DataContext dataContext, RunConfiguration runConfiguration, ExecutionEnvironment executionEnvironment,
+                               SbtBeforeRunTask sbtBeforeRunTask) {
+        return executeTask(dataContext, runConfiguration, sbtBeforeRunTask);
     }
 
     private boolean run(RunConfiguration runConfiguration, SbtBeforeRunTask task, String action) {

@@ -5,9 +5,10 @@
 package net.orfjackal.sbt.plugin.settings;
 
 import com.intellij.openapi.components.*;
+import org.jetbrains.annotations.NotNull;
 
 @State(name = "SbtSettings", storages = {@Storage(id = "default", file = "$APP_CONFIG$/other.xml")})
-public class SbtApplicationSettingsComponent implements PersistentStateComponent<SbtApplicationSettings> {
+public class SbtApplicationSettingsComponent implements PersistentStateComponent<SbtApplicationSettings>, ApplicationComponent {
 
     private SbtApplicationSettings applicationSettings = new SbtApplicationSettings();
 
@@ -17,5 +18,16 @@ public class SbtApplicationSettingsComponent implements PersistentStateComponent
 
     public void loadState(SbtApplicationSettings state) {
         applicationSettings = state;
+    }
+
+    public void initComponent() {
+    }
+
+    public void disposeComponent() {
+    }
+
+    @NotNull
+    public String getComponentName() {
+        return "SbtSettings";
     }
 }

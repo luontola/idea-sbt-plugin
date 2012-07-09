@@ -69,10 +69,11 @@ public class SbtConsole {
     }
 
     private static ConsoleView createConsoleView(Project project) {
-        if (!"true".equalsIgnoreCase(System.getProperty("idea.sbt.plugin.classic"))) {
-            return createLanguageConsole(project);
-        } else {
+        boolean useClassicConsole = "true".equalsIgnoreCase(System.getProperty("idea.sbt.plugin.classic"));
+        if (useClassicConsole) {
             return createTextConsole(project);
+        } else {
+            return createLanguageConsole(project);
         }
     }
 
@@ -253,7 +254,7 @@ public class SbtConsole {
 
     private class StartSbtAction extends DumbAwareAction {
         public StartSbtAction() {
-            super("Start SBT", "Start SBT", IconLoader.getIcon("/general/toolWindowRun.png"));
+            super("Start SBT", "Start SBT", IconLoader.getIcon("/toolwindows/toolWindowRun.png"));
         }
 
         @Override
