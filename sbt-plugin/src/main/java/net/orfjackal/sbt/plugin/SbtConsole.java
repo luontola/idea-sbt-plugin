@@ -23,6 +23,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.util.*;
 import com.intellij.openapi.wm.*;
@@ -227,7 +228,9 @@ public class SbtConsole {
         public void actionPerformed(AnActionEvent event) {
             try {
                 runnerComponent.startIfNotStarted(false);
-            } catch (IOException e) {
+            } catch (Exception e) {
+                String toolWindowId = MessageBundle.message("sbt.console.id");
+                ToolWindowManager.getInstance(project).notifyByBalloon(toolWindowId, MessageType.ERROR, "Unable to start SBT. " + e.getMessage());
                 logger.error("Failed to start SBT", e);
             }
         }
