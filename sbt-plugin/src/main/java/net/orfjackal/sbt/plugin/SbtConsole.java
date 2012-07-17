@@ -226,13 +226,7 @@ public class SbtConsole {
 
         @Override
         public void actionPerformed(AnActionEvent event) {
-            try {
-                runnerComponent.startIfNotStarted(false);
-            } catch (Exception e) {
-                String toolWindowId = MessageBundle.message("sbt.console.id");
-                ToolWindowManager.getInstance(project).notifyByBalloon(toolWindowId, MessageType.ERROR, "Unable to start SBT. " + e.getMessage());
-                logger.error("Failed to start SBT", e);
-            }
+            runnerComponent.startIfNotStartedSafe(false);
         }
 
         @Override

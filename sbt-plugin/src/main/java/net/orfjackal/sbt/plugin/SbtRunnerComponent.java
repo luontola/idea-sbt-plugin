@@ -4,8 +4,10 @@
 
 package net.orfjackal.sbt.plugin;
 
+import com.google.common.io.Resources;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -14,6 +16,8 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.DumbAwareRunnable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.ui.MessageType;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.*;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
@@ -23,6 +27,8 @@ import net.orfjackal.sbt.runner.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Scanner;
 
 public class SbtRunnerComponent extends AbstractProjectComponent implements DumbAware {
@@ -138,7 +144,9 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
      */
     public boolean executeAndWait(String action) throws IOException {
         saveAllDocuments();
-        startIfNotStarted(true);
+        if (!startIfNotStartedSafe(true)) {
+            return false;
+        }
         boolean success;
         try {
             success = sbt.execute(action);
@@ -168,7 +176,19 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
         return console;
     }
 
-    public final void startIfNotStarted(boolean wait) throws IOException {
+    public final boolean startIfNotStartedSafe(boolean wait) {
+        try {
+            startIfNotStarted(wait);
+            return true;
+        } catch (Throwable e) {
+            String toolWindowId = MessageBundle.message("sbt.console.id");
+            ToolWindowManager.getInstance(project).notifyByBalloon(toolWindowId, MessageType.ERROR, "Unable to start SBT. " + e.getMessage());
+            logger.info("Failed to start SBT", e);
+            return false;
+        }
+    }
+
+    private void startIfNotStarted(boolean wait) throws IOException {
         if (!isSbtAlive()) {
             sbt = new SbtRunner(projectSettings.getJavaCommand(applicationSettings), projectDir(), launcherJar(), vmParameters());
             printToMessageWindow();
@@ -190,7 +210,27 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
     }
 
     private File launcherJar() {
-        return new File(projectSettings.effectiveSbtLauncherJarPath(applicationSettings));
+        String pathname = projectSettings.effectiveSbtLauncherJarPath(applicationSettings);
+        if (pathname != null && pathname.length() != 0) {
+            return new File(pathname);
+        }
+        try {
+            return unpackBundledLauncher();
+        } catch (Exception e) {
+            // ignore
+        }
+        return new File("no-launcher.jar");
+    }
+
+    private File unpackBundledLauncher() throws IOException {
+        String launcherName = "sbt-launch.jar";
+        URL resource = SbtRunnerComponent.class.getClassLoader().getResource("sbt-launch.jar");
+        File launcherTemp = new File(new File(PathManager.getSystemPath(), "sbt"), launcherName);
+        if (!launcherTemp.exists()) {
+            byte[] bytes = Resources.toByteArray(resource);
+            FileUtil.writeToFile(launcherTemp, bytes);
+        }
+        return launcherTemp;
     }
 
     private String[] vmParameters() {

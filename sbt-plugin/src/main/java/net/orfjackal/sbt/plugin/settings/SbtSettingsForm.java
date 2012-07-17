@@ -43,7 +43,7 @@ public class SbtSettingsForm {
         }
         {
             projectSbtLauncherLabel.setDisplayedMnemonic('C');
-            projectSbtLauncherLabel.setLabelFor(applicationSbtLauncherJarPath);
+            projectSbtLauncherLabel.setLabelFor(projectSbtLauncherJarPath);
 
             JButton browse = new JButton("...");
             browse.addActionListener(new ActionListener() {
@@ -66,9 +66,10 @@ public class SbtSettingsForm {
         JPanel ideSettings = new JPanel(new MigLayout("", "[grow]", "[nogrid]"));
         ideSettings.setBorder(BorderFactory.createTitledBorder("IDE Settings"));
         {
-            JLabel label = new JLabel("SBT launcher JAR file (sbt-launch.jar)");
+            JLabel label = new JLabel("SBT launcher JAR file (sbt-launch.jar). Leave blank to use the bundled launcher.");
             label.setDisplayedMnemonic('L');
             label.setLabelFor(applicationSbtLauncherJarPath);
+            label.setToolTipText("When using the bundled launcher, ./project/build.properties should contain the desired SBT version, e.g. sbt.version=0.12.0");
 
             JButton browse = new JButton("...");
             browse.addActionListener(new ActionListener() {
@@ -141,9 +142,17 @@ public class SbtSettingsForm {
 
     public void copyTo(SbtProjectSettings projectSettings, SbtApplicationSettings applicationSettings) {
         projectSettings.setUseApplicationSettings(useApplicationSettings.isSelected());
-        projectSettings.setSbtLauncherJarPath(FileUtil.toSystemIndependentName(projectSbtLauncherJarPath.getText()));
+        if (projectSbtLauncherJarPath.getText().length() == 0) {
+            projectSettings.setSbtLauncherJarPath("");
+        } else {
+            projectSettings.setSbtLauncherJarPath(FileUtil.toSystemIndependentName(projectSbtLauncherJarPath.getText()));
+        }
         projectSettings.setSbtLauncherVmParameters(projectVmParameters.getText());
-        applicationSettings.setSbtLauncherJarPath(FileUtil.toSystemIndependentName(applicationSbtLauncherJarPath.getText()));
+        if (applicationSbtLauncherJarPath.getText().length() == 0) {
+            applicationSettings.setSbtLauncherJarPath("");
+        } else {
+            applicationSettings.setSbtLauncherJarPath(FileUtil.toSystemIndependentName(applicationSbtLauncherJarPath.getText()));
+        }
         applicationSettings.setSbtLauncherVmParameters(applicationVmParameters.getText());
         applicationSettings.setUseCustomJdk(jreChooser.isPathEnabled());
         applicationSettings.setJdkHome(jreChooser.getPath());
@@ -151,10 +160,18 @@ public class SbtSettingsForm {
     }
 
     public void copyFrom(SbtProjectSettings projectSettings, SbtApplicationSettings applicationSettings) {
-        projectSbtLauncherJarPath.setText(FileUtil.toSystemDependentName(IO.absolutePath(projectSettings.getSbtLauncherJarPath())));
+        if (projectSettings.getSbtLauncherJarPath().length() == 0) {
+            projectSbtLauncherJarPath.setText("");
+        } else {
+            projectSbtLauncherJarPath.setText(FileUtil.toSystemDependentName(IO.absolutePath(projectSettings.getSbtLauncherJarPath())));
+        }
         projectVmParameters.setText(projectSettings.getSbtLauncherVmParameters());
         useApplicationSettings.setSelected(projectSettings.isUseApplicationSettings());
-        applicationSbtLauncherJarPath.setText(FileUtil.toSystemDependentName(IO.absolutePath(applicationSettings.getSbtLauncherJarPath())));
+        if (applicationSettings.getSbtLauncherJarPath().length() == 0) {
+            applicationSbtLauncherJarPath.setText("");
+        } else {
+            applicationSbtLauncherJarPath.setText(FileUtil.toSystemDependentName(IO.absolutePath(applicationSettings.getSbtLauncherJarPath())));
+        }
         applicationVmParameters.setText(applicationSettings.getSbtLauncherVmParameters());
         jreChooser.init(applicationSettings.getJdkHome(), applicationSettings.isUseCustomJdk());
     }
