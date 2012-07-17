@@ -20,7 +20,12 @@ import com.intellij.lang.Language;
 import com.intellij.lang.StdLanguages;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.impl.UndoManagerImpl;
+import com.intellij.openapi.command.undo.DocumentReferenceManager;
+import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.ex.DocumentEx;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
@@ -31,6 +36,7 @@ import com.intellij.openapi.wm.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.content.*;
 import net.orfjackal.sbt.plugin.sbtlang.SbtLanguage;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -88,19 +94,43 @@ public class SbtConsole {
             @Override
             public void attachToProcess(ProcessHandler processHandler) {
                 super.attachToProcess(processHandler);
-                ConsoleExecuteActionHandler executeActionHandler = new ConsoleExecuteActionHandler(processHandler, false);
+                ConsoleExecuteActionHandler executeActionHandler = new ConsoleExecuteActionHandler(processHandler, false) {
+                    @Override
+                    public void runExecuteAction(final LanguageConsoleImpl languageConsole) {
+                        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+                            public void run() {
+                                DocumentEx document = languageConsole.getHistoryViewer().getDocument();
+                                deleteTextFromEnd(document, "\n> ");
+                                document.insertString(document.getTextLength(), "\n");
+                            }
+                        });
+                        super.runExecuteAction(languageConsole);
+                    }
+
+                };
                 // SBT echos the command, don't add it to the output a second time.
-                executeActionHandler.setAddCurrentToHistory(false);
+                executeActionHandler.setAddCurrentToHistory(true);
                 ConsoleHistoryController historyController = new ConsoleHistoryController("scala", null, sbtLanguageConsole, executeActionHandler.getConsoleHistoryModel());
                 historyController.install();
                 AnAction action = AbstractConsoleRunnerWithHistory.createConsoleExecAction(sbtLanguageConsole, processHandler, executeActionHandler);
                 action.registerCustomShortcutSet(action.getShortcutSet(), sbtLanguageConsole.getComponent());
             }
 
+            @Override
+            public boolean hasDeferredOutput() {
+                return super.hasDeferredOutput();
+            }
         };
         addFilters(project, consoleView);
 
         return consoleView;
+    }
+
+    private static void deleteTextFromEnd(DocumentEx document, String lastPrompt) {
+        String text = document.getText(TextRange.create(document.getTextLength() - lastPrompt.length(), document.getTextLength()));
+        if (text.equals(lastPrompt)) {
+            document.deleteString(document.getTextLength() - lastPrompt.length(), document.getTextLength());
+        }
     }
 
     private static void addFilters(Project project, LanguageConsoleViewImpl consoleView) {
