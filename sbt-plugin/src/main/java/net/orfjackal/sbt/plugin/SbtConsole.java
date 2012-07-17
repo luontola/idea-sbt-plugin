@@ -61,6 +61,26 @@ public class SbtConsole {
     }
 
     private static ConsoleView createConsoleView(Project project) {
+        if (!"true".equalsIgnoreCase(System.getProperty("idea.sbt.plugin.classic"))) {
+            return createLanguageConsole(project);
+        } else {
+            return createTextConsole(project);
+        }
+    }
+
+    private static ConsoleView createTextConsole(final Project project) {
+        TextConsoleBuilder builder = TextConsoleBuilderFactory.getInstance().createBuilder(project);
+
+        final SbtColorizerFilter logLevelFilter = new SbtColorizerFilter();
+        final ExceptionFilter exceptionFilter = new ExceptionFilter(GlobalSearchScope.allScope(project));
+        final RegexpFilter regexpFilter = new RegexpFilter(project, CONSOLE_FILTER_REGEXP);
+        for (Filter filter : Arrays.asList(exceptionFilter, regexpFilter, logLevelFilter)) {
+            builder.addFilter(filter);
+        }
+        return builder.getConsole();
+    }
+
+    private static ConsoleView createLanguageConsole(final Project project) {
         final LanguageConsoleImpl sbtLanguageConsole = new LanguageConsoleImpl(project, "SBT", SbtLanguage.INSTANCE);
         LanguageConsoleViewImpl consoleView = new LanguageConsoleViewImpl(project, sbtLanguageConsole) {
             @Override

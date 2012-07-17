@@ -36,9 +36,7 @@ public class SbtRunner {
 
         command.add(javaCommand);
         command.add("-Dsbt.log.noformat=true");
-        // Attempted fix for https://github.com/orfjackal/idea-sbt-plugin/issues/49
-        // Needs to be tested on windows.
-        // command.add("-Djline.terminal=jline.UnsupportedTerminal");
+        command.add("-Djline.terminal=jline.UnsupportedTerminal");
         command.addAll(Arrays.asList(vmParameters));
         command.addAll(Arrays.asList(
                 "-jar",
@@ -91,6 +89,7 @@ public class SbtRunner {
             output.close();
         }
         boolean error = output.endOfOutputContains(ERROR_RUNNING_ACTION_PREFIX) || output.endOfOutputContains(ERROR_SBT_010_PREFIX);
+        LOG.info("completed: " + action + ", error: " + error);
         return !error;
     }
 }
