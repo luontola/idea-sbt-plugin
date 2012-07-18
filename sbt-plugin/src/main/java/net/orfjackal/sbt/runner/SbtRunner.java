@@ -20,6 +20,7 @@ public class SbtRunner {
     private static final Logger LOG = Logger.getInstance("#orfjackal.sbt.runner.SbtRunner");
 
     private final ProcessRunner sbt;
+    private final String[] command;
 
     public SbtRunner(String javaCommand, File workingDir, File launcherJar, String[] vmParameters) {
         if (!workingDir.isDirectory()) {
@@ -28,7 +29,21 @@ public class SbtRunner {
         if (!launcherJar.isFile()) {
             throw new IllegalArgumentException("Launcher JAR file does not exist: " + launcherJar);
         }
-        sbt = new ProcessRunner(workingDir, getCommand(javaCommand, launcherJar, vmParameters));
+        command = getCommand(javaCommand, launcherJar, vmParameters);
+        sbt = new ProcessRunner(workingDir, command);
+    }
+
+    public final String getFormattedCommand() {
+        StringBuilder sb = new StringBuilder();
+        for (String s : command) {
+            if (s.contains(" ")) {
+                sb.append("\"").append(s).append("\"");
+            } else {
+                sb.append(s);
+            }
+            sb.append(" ");
+        }
+        return sb.toString();
     }
 
     private static String[] getCommand(String javaCommand, File launcherJar, String[] vmParameters) {

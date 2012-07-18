@@ -14,6 +14,7 @@ import com.intellij.execution.process.*;
 import com.intellij.execution.runners.AbstractConsoleRunnerWithHistory;
 import com.intellij.execution.runners.ConsoleExecuteActionHandler;
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.ide.CommonActionsManager;
 import com.intellij.lang.Language;
 import com.intellij.lang.StdLanguages;
@@ -117,6 +118,7 @@ public class SbtConsole {
     }
 
     public void attachToProcess(ProcessHandler processHandler, final SbtRunnerComponent runnerComponent) {
+        consoleView.print(runnerComponent.getFormattedCommand() + "\n\n", ConsoleViewContentType.SYSTEM_OUTPUT);
         consoleView.attachToProcess(processHandler);
         processHandler.addProcessListener(new ProcessAdapter() {
             public void onTextAvailable(ProcessEvent event, Key outputType) {

@@ -176,6 +176,10 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
         return console;
     }
 
+    public final String getFormattedCommand() {
+        return sbt.getFormattedCommand();
+    }
+
     public final boolean startIfNotStartedSafe(boolean wait) {
         try {
             startIfNotStarted(wait);
