@@ -25,7 +25,6 @@ import com.intellij.openapi.command.undo.DocumentReferenceManager;
 import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.ex.DocumentEx;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
@@ -99,7 +98,7 @@ public class SbtConsole {
                     public void runExecuteAction(final LanguageConsoleImpl languageConsole) {
                         ApplicationManager.getApplication().runWriteAction(new Runnable() {
                             public void run() {
-                                DocumentEx document = languageConsole.getHistoryViewer().getDocument();
+                                Document document = languageConsole.getHistoryViewer().getDocument();
                                 deleteTextFromEnd(document, "\n> ");
                                 document.insertString(document.getTextLength(), "\n");
                             }
@@ -126,7 +125,7 @@ public class SbtConsole {
         return consoleView;
     }
 
-    private static void deleteTextFromEnd(DocumentEx document, String lastPrompt) {
+    private static void deleteTextFromEnd(Document document, String lastPrompt) {
         String text = document.getText(TextRange.create(document.getTextLength() - lastPrompt.length(), document.getTextLength()));
         if (text.equals(lastPrompt)) {
             document.deleteString(document.getTextLength() - lastPrompt.length(), document.getTextLength());
