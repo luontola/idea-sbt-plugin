@@ -24,8 +24,11 @@
         <ul>
 
         <dt><b>1.5.0 (2011-07-21)</b></dt>
+        <li>Require IntelliJ IDEA 12 (Leda)</li>
+
+        <dt><b>1.4.0 (2011-07-21)</b></dt>
         <li>Bundle SBT launcher</li>
-        <li>Require IntelliJ IDEA 11; support IntelliJ IDEA 12 (Leda)</li>
+        <li>Require IntelliJ IDEA 11</li>
         <li>Change UI for the console to use a 'Language Console' <a href="https://github.com/orfjackal/idea-sbt-plugin/issues/42">#42</a></li>
         <li>Don't activate the SBT tool window on project opening. <a href="https://github.com/orfjackal/idea-sbt-plugin/issues/47">#47</a></li>
         <li>Allow the JRE that runs SBT to be specified. <a href="https://github.com/orfjackal/idea-sbt-plugin/issues/50">#50</a></li>
