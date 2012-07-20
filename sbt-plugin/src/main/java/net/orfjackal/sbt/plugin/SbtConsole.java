@@ -9,38 +9,34 @@ import com.intellij.execution.console.LanguageConsoleImpl;
 import com.intellij.execution.console.LanguageConsoleViewImpl;
 import com.intellij.execution.filters.*;
 import com.intellij.execution.impl.ConsoleViewImpl;
-import com.intellij.execution.impl.EditorHyperlinkSupport;
-import com.intellij.execution.process.*;
+import com.intellij.execution.process.ProcessAdapter;
+import com.intellij.execution.process.ProcessEvent;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.AbstractConsoleRunnerWithHistory;
 import com.intellij.execution.runners.ConsoleExecuteActionHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.ide.CommonActionsManager;
-import com.intellij.lang.Language;
-import com.intellij.lang.StdLanguages;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.impl.UndoManagerImpl;
-import com.intellij.openapi.command.undo.DocumentReferenceManager;
-import com.intellij.openapi.command.undo.UndoManager;
+import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.ex.DocumentEx;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
-import com.intellij.openapi.util.*;
-import com.intellij.openapi.wm.*;
+import com.intellij.openapi.util.IconLoader;
+import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.ui.content.*;
+import com.intellij.ui.content.Content;
+import com.intellij.ui.content.ContentFactory;
 import net.orfjackal.sbt.plugin.sbtlang.SbtLanguage;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -98,14 +94,11 @@ public class SbtConsole {
                 ConsoleExecuteActionHandler executeActionHandler = new ConsoleExecuteActionHandler(processHandler, false) {
                     @Override
                     public void runExecuteAction(final LanguageConsoleImpl languageConsole) {
-                        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-                            public void run() {
-                                DocumentEx document = languageConsole.getHistoryViewer().getDocument();
-                                deleteTextFromEnd(document, "\n> ");
-                                document.insertString(document.getTextLength(), "\n");
-                            }
-                        });
+                        EditorEx consoleEditor = languageConsole.getConsoleEditor();
+                        consoleEditor.setCaretEnabled(false);
                         super.runExecuteAction(languageConsole);
+                        // hide the prompts until the command has completed.
+                        languageConsole.setPrompt("  ");
                     }
 
                 };
@@ -122,15 +115,45 @@ public class SbtConsole {
                 return super.hasDeferredOutput();
             }
         };
+        sbtLanguageConsole.setPrompt("  ");
         addFilters(project, consoleView);
 
         return consoleView;
     }
 
-    private static void deleteTextFromEnd(DocumentEx document, String lastPrompt) {
-        String text = document.getText(TextRange.create(document.getTextLength() - lastPrompt.length(), document.getTextLength()));
-        if (text.equals(lastPrompt)) {
-            document.deleteString(document.getTextLength() - lastPrompt.length(), document.getTextLength());
+    public void enablePrompt() {
+        if (consoleView instanceof LanguageConsoleViewImpl) {
+            final LanguageConsoleViewImpl languageConsoleView = (LanguageConsoleViewImpl) consoleView;
+            final LanguageConsoleImpl console = languageConsoleView.getConsole();
+
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    languageConsoleView.flushDeferredText();
+                    ApplicationManagerEx.getApplication().runWriteAction(new Runnable() {
+                        public void run() {
+                            Document document = console.getHistoryViewer().getDocument();
+                            deleteTextFromEnd(document, "\n> ", "\n");
+                            console.setPrompt("> ");
+                            EditorEx consoleEditor = console.getConsoleEditor();
+                            consoleEditor.setCaretEnabled(true);
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    private static void deleteTextFromEnd(final Document document, String lastPrompt, final String replacement) {
+        final int startOffset = document.getTextLength() - lastPrompt.length();
+        if (startOffset > 0) {
+            String text = document.getText(TextRange.create(startOffset, document.getTextLength()));
+            if (text.equals(lastPrompt)) {
+                SwingUtilities.invokeLater(new Runnable() {
+                    public void run() {
+                        document.replaceString(startOffset, document.getTextLength(), replacement);
+                    }
+                });
+            }
         }
     }
 

@@ -7,6 +7,7 @@ package net.orfjackal.sbt.runner;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 
+import javax.swing.*;
 import java.io.*;
 import java.util.*;
 
@@ -75,6 +76,30 @@ public class SbtRunner {
             output.waitForOutput(Arrays.asList(PROMPT, FAILED_TO_COMPILE_PROMPT));
         }
         output.close();
+    }
+
+    public void start(boolean wait, final Runnable onStarted) throws IOException {
+        // TODO: detect if the directory does not have a project
+        final OutputReader output = sbt.subscribeToOutput();
+        sbt.start();
+        sbt.destroyOnShutdown();
+        if (wait) {
+            output.waitForOutput(Arrays.asList(PROMPT, FAILED_TO_COMPILE_PROMPT));
+            output.close();
+        } else {
+            new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        output.waitForOutput(Arrays.asList(PROMPT, FAILED_TO_COMPILE_PROMPT));
+                        output.close();
+                        SwingUtilities.invokeLater(onStarted);
+                    } catch (IOException e) {
+                        // ignore
+                    }
+                }
+            }.start();
+        }
     }
 
     public void destroy() {

@@ -4,7 +4,6 @@
 
 package net.orfjackal.sbt.plugin;
 
-import com.google.common.io.Resources;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.PathManager;
@@ -18,17 +17,18 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.StreamUtil;
 import com.intellij.openapi.vfs.*;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.util.concurrency.SwingWorker;
 import net.orfjackal.sbt.plugin.settings.*;
 import net.orfjackal.sbt.runner.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.io.InputStream;
 import java.util.Scanner;
 
 public class SbtRunnerComponent extends AbstractProjectComponent implements DumbAware {
@@ -150,7 +150,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
         boolean success;
         try {
             success = sbt.execute(action);
-
+            this.getConsole().enablePrompt();
             // TODO: update target folders (?)
             // org.jetbrains.idea.maven.project.MavenProjectsManager#updateProjectFolders
             // org.jetbrains.idea.maven.execution.MavenRunner#runBatch
@@ -192,14 +192,18 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
         }
     }
 
-    private void startIfNotStarted(boolean wait) throws IOException {
+    private void startIfNotStarted(final boolean wait) throws IOException {
         if (!isSbtAlive()) {
             sbt = new SbtRunner(projectSettings.getJavaCommand(applicationSettings), projectDir(), launcherJar(), vmParameters());
             printToMessageWindow();
             if (DEBUG) {
                 printToLogFile();
             }
-            sbt.start(wait);
+            sbt.start(wait, new Runnable() {
+                public void run() {
+                    console.enablePrompt();
+                }
+            });
         }
     }
 
@@ -228,10 +232,10 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
 
     private File unpackBundledLauncher() throws IOException {
         String launcherName = "sbt-launch.jar";
-        URL resource = SbtRunnerComponent.class.getClassLoader().getResource("sbt-launch.jar");
         File launcherTemp = new File(new File(PathManager.getSystemPath(), "sbt"), launcherName);
         if (!launcherTemp.exists()) {
-            byte[] bytes = Resources.toByteArray(resource);
+            InputStream resource = SbtRunnerComponent.class.getClassLoader().getResourceAsStream("sbt-launch.jar");
+            byte[] bytes = StreamUtil.loadFromStream(resource);
             FileUtil.writeToFile(launcherTemp, bytes);
         }
         return launcherTemp;
