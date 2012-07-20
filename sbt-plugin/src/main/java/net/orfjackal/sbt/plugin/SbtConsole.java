@@ -277,7 +277,7 @@ public class SbtConsole {
 
     private class StartSbtAction extends DumbAwareAction {
         public StartSbtAction() {
-            super("Start SBT", "Start SBT", IconLoader.getIcon("/toolwindows/toolWindowRun.png"));
+            super("Start SBT", "Start SBT", IconLoader.getIcon("/general/toolWindowRun.png"));
         }
 
         @Override
