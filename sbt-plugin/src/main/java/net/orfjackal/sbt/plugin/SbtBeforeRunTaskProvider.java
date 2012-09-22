@@ -20,6 +20,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.wm.StatusBar;
 import com.intellij.openapi.wm.ToolWindow;
@@ -89,8 +90,8 @@ public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRun
 
     private boolean run(RunConfiguration runConfiguration, SbtBeforeRunTask task, String action) {
         if (task.isRunInCurrentModule() && runConfiguration instanceof ModuleBasedConfiguration<?>) {
-            ModuleBasedConfiguration<?> moduleBasedConfiguration = (ModuleBasedConfiguration<?>) runConfiguration;
-            Module[] modules = moduleBasedConfiguration.getModules();
+            final ModuleBasedConfiguration<?> moduleBasedConfiguration = (ModuleBasedConfiguration<?>) runConfiguration;
+            Module[] modules = safeGetModules(moduleBasedConfiguration);
             if (modules.length == 1) {
                 Module module = modules[0];
                 return runInModule(action, module.getName());
@@ -98,6 +99,15 @@ public class SbtBeforeRunTaskProvider extends BeforeRunTaskProvider<SbtBeforeRun
         }
 
         return runDirectly(action);
+    }
+
+    private Module[] safeGetModules(final ModuleBasedConfiguration<?> moduleBasedConfiguration) {
+        // Read action is a workaround for http://youtrack.jetbrains.com/issue/SCL-4716
+        return ApplicationManager.getApplication().runReadAction(new Computable<Module[]>() {
+            public Module[] compute() {
+                return moduleBasedConfiguration.getModules();
+            }
+        });
     }
 
     private boolean runInModule(String action, String moduleName) {
