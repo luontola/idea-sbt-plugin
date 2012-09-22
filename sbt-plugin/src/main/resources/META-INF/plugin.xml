@@ -4,7 +4,7 @@
     <id>SBT</id>
     <name>SBT</name>
     <version>${project.version}</version>
-    <idea-version since-build="120.1"/>
+    <idea-version since-build="122.327"/>
     <category>Build</category>
 
     <vendor url="http://www.orfjackal.net">Esko Luontola</vendor>

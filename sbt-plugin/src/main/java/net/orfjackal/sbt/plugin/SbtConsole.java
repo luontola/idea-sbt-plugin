@@ -87,7 +87,7 @@ public class SbtConsole {
 
     private static ConsoleView createLanguageConsole(final Project project) {
         final LanguageConsoleImpl sbtLanguageConsole = new LanguageConsoleImpl(project, "SBT", SbtLanguage.INSTANCE);
-        LanguageConsoleViewImpl consoleView = new LanguageConsoleViewImpl(project, sbtLanguageConsole) {
+        LanguageConsoleViewImpl consoleView = new LanguageConsoleViewImpl(sbtLanguageConsole) {
             @Override
             public void attachToProcess(ProcessHandler processHandler) {
                 super.attachToProcess(processHandler);
