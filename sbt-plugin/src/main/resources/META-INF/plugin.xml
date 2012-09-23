@@ -23,14 +23,18 @@
     <change-notes><![CDATA[
         <ul>
 
-        <dt><b>1.4.0 (in progress)</b></dt>
+        <dt><b>1.4.0</b></dt>
         <li>Require IntelliJ 11 (Nika)</li>
         <li>Change UI for the console to use a 'Language Console' <a href="https://github.com/orfjackal/idea-sbt-plugin/issues/42">#42</a></li>
-
-        <dt><b>1.3.2 (in progress)</b></dt>
         <li>Don't activate the SBT tool window on project opening. <a href="https://github.com/orfjackal/idea-sbt-plugin/issues/47">#47</a></li>
-        <li>Avoid JLine warning in the REPL. <a href="https://github.com/orfjackal/idea-sbt-plugin/issues/49">#49</a></li>
         <li>Allow the JRE that runs SBT to be specified. <a href="https://github.com/orfjackal/idea-sbt-plugin/issues/50">#50</a></li>
+        <li>Support console history of entered commands</li>
+        <li>Default Before Run action to test:products</li>
+        <li>Bundle SBT 0.12 Launcher (compatible with builds in 0.7.x and above)</li>
+        <li>Avoid bug with empty VM options</li>
+        <li>Add framework for autocompletion. Currently, the completions are not context sensitive, and only offer a hard coded list of common actions.</li>
+        <li>Avoid spawning endless background tasks when using the Scala REPL inside the SBT session.</li>
+        <li>Avoid JLine warning in the REPL. <a href="https://github.com/orfjackal/idea-sbt-plugin/issues/49">#49</a></li>
 
         <dt><b>1.3.1 (2011-09-22)</b></dt>
         <li>Compability with IDEA 11</li>
