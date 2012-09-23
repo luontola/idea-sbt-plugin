@@ -197,7 +197,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
                 public void run() {
                     try {
                         // See https://github.com/orfjackal/idea-sbt-plugin/issues/49
-                        sbt.execute("eval {System.setProperty(\"jline.terminal\" , \"none\"); ()}");
+                        sbt.execute("eval {System.setProperty(\"jline.terminal\" , \"none\"); \"<modified system property 'jline.terminal' for Scala console compatibility>\"}");
                     } catch (Exception e) {
                         // ignore
                     }
