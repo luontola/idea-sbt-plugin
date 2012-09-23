@@ -19,10 +19,10 @@ public class OutputReader extends FilterReader {
     }
 
     public boolean waitForOutput(String expected) throws IOException {
-        return waitForOutput(Arrays.asList(expected));
+        return waitForOutput(Arrays.asList(expected), Arrays.<String>asList());
     }
 
-    public boolean waitForOutput(Collection<String> expected) throws IOException {
+    public boolean waitForOutput(Collection<String> expected, Collection<String> expectedExact) throws IOException {
         int max = 0;
         for (String s : expected) {
             checkExpectedLength(s);
@@ -33,6 +33,11 @@ public class OutputReader extends FilterReader {
             buffer.append((char) ch);
             for (String s : expected) {
                 if (buffer.contentEndsWith(s)) {
+                    return FOUND;
+                }
+            }
+            for (String s : expectedExact) {
+                if (buffer.contentEquals(s)) {
                     return FOUND;
                 }
             }
