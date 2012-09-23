@@ -1,7 +1,5 @@
 package net.orfjackal.sbt.plugin.sbtlang;
 
-import com.intellij.lang.Language;
-import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
