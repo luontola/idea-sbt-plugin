@@ -9,8 +9,9 @@ import org.jdom.Element;
 
 public class SbtBeforeRunTask extends BeforeRunTask {
 
-    private String action;
-    private boolean runInCurrentModule;
+    private static final String DEFAULT_ACTION = "test:products";
+    private String action = DEFAULT_ACTION;
+    private boolean runInCurrentModule = true;
 
     public String getAction() {
         return action;
