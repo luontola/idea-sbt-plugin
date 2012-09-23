@@ -14,6 +14,7 @@ import java.util.*;
 public class SbtRunner {
 
     private static final String PROMPT = "\n> ";
+    private static final String SCALA_PROMPT = "\nscala> ";
     private static final String FAILED_TO_COMPILE_PROMPT = "Hit enter to retry or 'exit' to quit:";
     private static final String PROMPT_AFTER_EMPTY_ACTION = "> ";
     private static final String ERROR_RUNNING_ACTION_PREFIX = "[error] Error running ";
@@ -73,7 +74,7 @@ public class SbtRunner {
         sbt.start();
         sbt.destroyOnShutdown();
         if (wait) {
-            output.waitForOutput(Arrays.asList(PROMPT, FAILED_TO_COMPILE_PROMPT));
+            output.waitForOutput(Arrays.asList(PROMPT, FAILED_TO_COMPILE_PROMPT), Arrays.<String>asList());
         }
         output.close();
     }
@@ -84,14 +85,14 @@ public class SbtRunner {
         sbt.start();
         sbt.destroyOnShutdown();
         if (wait) {
-            output.waitForOutput(Arrays.asList(PROMPT, FAILED_TO_COMPILE_PROMPT));
+            output.waitForOutput(Arrays.asList(PROMPT, FAILED_TO_COMPILE_PROMPT), Arrays.<String>asList());
             output.close();
         } else {
             new Thread() {
                 @Override
                 public void run() {
                     try {
-                        output.waitForOutput(Arrays.asList(PROMPT, FAILED_TO_COMPILE_PROMPT));
+                        output.waitForOutput(Arrays.asList(PROMPT, FAILED_TO_COMPILE_PROMPT), Arrays.<String>asList());
                         output.close();
                         SwingUtilities.invokeLater(onStarted);
                     } catch (IOException e) {
@@ -119,17 +120,12 @@ public class SbtRunner {
         OutputReader output = sbt.subscribeToOutput();
         try {
             sbt.writeInput(action + "\n");
-
-            if (action.trim().equals("")) {
-                output.waitForOutput(Arrays.asList(PROMPT_AFTER_EMPTY_ACTION, FAILED_TO_COMPILE_PROMPT));
-            } else {
-                output.waitForOutput(Arrays.asList(PROMPT, FAILED_TO_COMPILE_PROMPT));
-            }
+            output.waitForOutput(Arrays.asList(PROMPT, SCALA_PROMPT, FAILED_TO_COMPILE_PROMPT), Arrays.asList(PROMPT_AFTER_EMPTY_ACTION));
         } finally {
             output.close();
         }
         boolean error = output.endOfOutputContains(ERROR_RUNNING_ACTION_PREFIX) || output.endOfOutputContains(ERROR_SBT_010_PREFIX);
-        LOG.info("completed: " + action + ", error: " + error);
+        LOG.debug("completed: " + action + ", error: " + error);
         return !error;
     }
 }

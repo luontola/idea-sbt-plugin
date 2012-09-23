@@ -9,6 +9,7 @@ import com.intellij.execution.console.LanguageConsoleImpl;
 import com.intellij.execution.console.LanguageConsoleViewImpl;
 import com.intellij.execution.filters.*;
 import com.intellij.execution.impl.ConsoleViewImpl;
+import com.intellij.execution.process.ConsoleHistoryModel;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
@@ -31,8 +32,10 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
+import net.orfjackal.sbt.plugin.sbtlang.SbtFileType;
 import net.orfjackal.sbt.plugin.sbtlang.SbtLanguage;
 
 import javax.swing.*;
@@ -60,16 +63,16 @@ public class SbtConsole {
     public SbtConsole(String title, Project project, SbtRunnerComponent runnerComponent) {
         this.title = title;
         this.project = project;
-        this.consoleView = createConsoleView(project);
+        this.consoleView = createConsoleView(project, this);
         this.runnerComponent = runnerComponent;
     }
 
-    private static ConsoleView createConsoleView(Project project) {
+    private static ConsoleView createConsoleView(Project project, SbtConsole sbtConsole) {
         boolean useClassicConsole = "true".equalsIgnoreCase(System.getProperty("idea.sbt.plugin.classic"));
         if (useClassicConsole) {
             return createTextConsole(project);
         } else {
-            return createLanguageConsole(project);
+            return createLanguageConsole(project, sbtConsole);
         }
     }
 
@@ -85,13 +88,20 @@ public class SbtConsole {
         return builder.getConsole();
     }
 
-    private static ConsoleView createLanguageConsole(final Project project) {
-        final LanguageConsoleImpl sbtLanguageConsole = new LanguageConsoleImpl(project, "SBT", SbtLanguage.INSTANCE);
+    private static ConsoleView createLanguageConsole(final Project project, final SbtConsole sbtConsole) {
+        LightVirtualFile lightFile = new LightVirtualFile("SBT", SbtLanguage.INSTANCE, "");
+        lightFile.setFileType(SbtFileType.INSTANCE);
+        final LanguageConsoleImpl sbtLanguageConsole = new LanguageConsoleImpl(project, "SBT", lightFile, true);
+        // important to only have one history controller, even if SBT is restarted.
+        final ConsoleHistoryController historyController = new ConsoleHistoryController("scala", null, sbtLanguageConsole, new ConsoleHistoryModel());
+        historyController.install();
+
         LanguageConsoleViewImpl consoleView = new LanguageConsoleViewImpl(sbtLanguageConsole) {
             @Override
             public void attachToProcess(ProcessHandler processHandler) {
                 super.attachToProcess(processHandler);
                 ConsoleExecuteActionHandler executeActionHandler = new ConsoleExecuteActionHandler(processHandler, false) {
+                    { setConsoleHistoryModel(historyController.getModel());}
                     @Override
                     public void runExecuteAction(final LanguageConsoleImpl languageConsole) {
                         EditorEx consoleEditor = languageConsole.getConsoleEditor();
@@ -100,12 +110,9 @@ public class SbtConsole {
                         // hide the prompts until the command has completed.
                         languageConsole.setPrompt("  ");
                     }
-
                 };
                 // SBT echos the command, don't add it to the output a second time.
                 executeActionHandler.setAddCurrentToHistory(true);
-                ConsoleHistoryController historyController = new ConsoleHistoryController("scala", null, sbtLanguageConsole, executeActionHandler.getConsoleHistoryModel());
-                historyController.install();
                 AnAction action = AbstractConsoleRunnerWithHistory.createConsoleExecAction(sbtLanguageConsole, processHandler, executeActionHandler);
                 action.registerCustomShortcutSet(action.getShortcutSet(), sbtLanguageConsole.getComponent());
             }
@@ -132,9 +139,15 @@ public class SbtConsole {
                     ApplicationManagerEx.getApplication().runWriteAction(new Runnable() {
                         public void run() {
                             Document document = console.getHistoryViewer().getDocument();
-                            deleteTextFromEnd(document, "\n> ", "\n");
-                            console.setPrompt("> ");
                             EditorEx consoleEditor = console.getConsoleEditor();
+                            if (deleteTextFromEnd(document, "\n> ", "\n")) {
+                                console.setPrompt("> ");
+                            } else if (deleteTextFromEnd(document, "\nscala> ", "\n")) {
+                                console.setPrompt("scala> ");
+                                // not sure why this works, but it moves the caret to the end of the prompt.
+                                // without this, it apppears between the `c` and `a`.
+                                consoleEditor.getCaretModel().moveCaretRelatively(-1, 0, false, false, false);
+                            }
                             consoleEditor.setCaretEnabled(true);
                         }
                     });
@@ -143,7 +156,7 @@ public class SbtConsole {
         }
     }
 
-    private static void deleteTextFromEnd(final Document document, String lastPrompt, final String replacement) {
+    private static boolean deleteTextFromEnd(final Document document, String lastPrompt, final String replacement) {
         final int startOffset = document.getTextLength() - lastPrompt.length();
         if (startOffset > 0) {
             String text = document.getText(TextRange.create(startOffset, document.getTextLength()));
@@ -153,8 +166,10 @@ public class SbtConsole {
                         document.replaceString(startOffset, document.getTextLength(), replacement);
                     }
                 });
+                return true;
             }
         }
+        return false;
     }
 
     private static void addFilters(Project project, LanguageConsoleViewImpl consoleView) {

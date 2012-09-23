@@ -63,12 +63,12 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
         queue(new Task.Backgroundable(myProject, MessageBundle.message("sbt.tasks.executing"), false) {
             public void run(ProgressIndicator indicator) {
                 try {
-                    logger.info("Begin executing: " + action);
+                    logger.debug("Begin executing: " + action);
                     if (executeAndWait(action)) {
                         signal.success();
-                        logger.info("Done executing: " + action);
+                        logger.debug("Done executing: " + action);
                     } else {
-                        logger.info("Error executing: " + action);
+                        logger.debug("Error executing: " + action);
                     }
                 } catch (IOException e) {
                     logger.error("Failed to execute action \"" + action + "\". Maybe SBT failed to start?", e);
@@ -96,12 +96,6 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
     public void disposeComponent() {
         unregisterToolWindow();
         destroyProcess();
-    }
-
-    public void recreateToolWindow() {
-        unregisterToolWindow();
-        console = createConsole(myProject);
-        registerToolWindow();
     }
 
     private SbtConsole createConsole(Project project) {
@@ -201,6 +195,12 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
             }
             sbt.start(wait, new Runnable() {
                 public void run() {
+                    try {
+                        // See https://github.com/orfjackal/idea-sbt-plugin/issues/49
+                        sbt.execute("eval {System.setProperty(\"jline.terminal\" , \"none\"); ()}");
+                    } catch (Exception e) {
+                        // ignore
+                    }
                     console.enablePrompt();
                 }
             });
