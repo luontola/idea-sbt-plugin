@@ -98,14 +98,14 @@ public class SbtConsole {
     private static ConsoleView createLanguageConsole(final Project project, final SbtConsole sbtConsole) {
         LightVirtualFile lightFile = new LightVirtualFile("SBT", SbtLanguage.INSTANCE, "");
         lightFile.setFileType(SbtFileType.INSTANCE);
-        final LanguageConsoleImpl sbtLanguageConsole = new LanguageConsoleImpl(project, "SBT", lightFile, true);
+        final LanguageConsoleImpl sbtLanguageConsole = new LanguageConsoleImpl(project, "SBT", lightFile, false);
         sbtLanguageConsole.setShowSeparatorLine(false);
+        sbtLanguageConsole.initComponents();
         enableLinkedHorizontalScrollFromHistoryViewer(sbtLanguageConsole);
 
         // important to only have one history controller, even if SBT is restarted.
         final ConsoleHistoryController historyController = new ConsoleHistoryController("scala", null, sbtLanguageConsole, new ConsoleHistoryModel());
         historyController.install();
-
         LanguageConsoleViewImpl consoleView = new LanguageConsoleViewImpl(sbtLanguageConsole) {
             @Override
             public void attachToProcess(ProcessHandler processHandler) {
@@ -137,6 +137,7 @@ public class SbtConsole {
         };
         sbtLanguageConsole.setPrompt("  ");
         addFilters(project, consoleView);
+        consoleView.setFlushDelay(50);
 
         return consoleView;
     }
