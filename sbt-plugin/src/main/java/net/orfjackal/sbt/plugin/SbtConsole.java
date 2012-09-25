@@ -22,6 +22,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.ScrollingModel;
+import com.intellij.openapi.editor.event.VisibleAreaEvent;
+import com.intellij.openapi.editor.event.VisibleAreaListener;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
@@ -29,16 +32,20 @@ import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.LightVirtualFile;
+import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
+import com.intellij.util.ui.ButtonlessScrollBarUI;
 import net.orfjackal.sbt.plugin.sbtlang.SbtFileType;
 import net.orfjackal.sbt.plugin.sbtlang.SbtLanguage;
 
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.awt.*;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -90,6 +97,8 @@ public class SbtConsole {
 
     private static ConsoleView createLanguageConsole(final Project project, final SbtConsole sbtConsole) {
         final LanguageConsoleImpl sbtLanguageConsole = new LanguageConsoleImpl(project, "SBT", SbtLanguage.INSTANCE);
+        sbtLanguageConsole.setShowSeparatorLine(false);
+        enableLinkedHorizontalScrollFromHistoryViewer(sbtLanguageConsole);        
 
         // important to only have one history controller, even if SBT is restarted.
         final ConsoleHistoryController historyController = new ConsoleHistoryController("scala", null, sbtLanguageConsole, new ConsoleHistoryModel());
@@ -100,7 +109,10 @@ public class SbtConsole {
             public void attachToProcess(ProcessHandler processHandler) {
                 super.attachToProcess(processHandler);
                 ConsoleExecuteActionHandler executeActionHandler = new ConsoleExecuteActionHandler(processHandler, false) {
-                    { setConsoleHistoryModel(historyController.getModel());}
+                    {
+                        setConsoleHistoryModel(historyController.getModel());
+                    }
+
                     @Override
                     public void runExecuteAction(final LanguageConsoleImpl languageConsole) {
                         EditorEx consoleEditor = languageConsole.getConsoleEditor();
@@ -125,6 +137,35 @@ public class SbtConsole {
         addFilters(project, consoleView);
 
         return consoleView;
+    }
+
+    private static void enableLinkedHorizontalScrollFromHistoryViewer(final LanguageConsoleImpl sbtLanguageConsole) {
+        JBScrollBar horizontalScrollBar = new JBScrollBar(Adjustable.HORIZONTAL);
+        horizontalScrollBar.setUI(new BasicScrollBarUI() {
+            @Override
+            public Dimension getPreferredSize(JComponent c) {
+                return new Dimension(0, 0);
+            }
+        });
+        sbtLanguageConsole.getHistoryViewer().getScrollPane().setHorizontalScrollBar(horizontalScrollBar);
+        sbtLanguageConsole.getHistoryViewer().setHorizontalScrollbarVisible(true);
+
+        final VisibleAreaListener areaListener = new VisibleAreaListener() {
+            public void visibleAreaChanged(VisibleAreaEvent e) {
+                final int offset = sbtLanguageConsole.getHistoryViewer().getScrollingModel().getHorizontalScrollOffset();
+                final ScrollingModel model = sbtLanguageConsole.getConsoleEditor().getScrollingModel();
+                final int historyOffset = model.getHorizontalScrollOffset();
+                if (historyOffset != offset) {
+                    try {
+                        model.disableAnimation();
+                        model.scrollHorizontally(offset);
+                    } finally {
+                        model.enableAnimation();
+                    }
+                }
+            }
+        };
+        sbtLanguageConsole.getHistoryViewer().getScrollingModel().addVisibleAreaListener(areaListener);
     }
 
     public void enablePrompt() {
