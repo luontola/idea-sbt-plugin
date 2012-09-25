@@ -96,8 +96,9 @@ public class SbtConsole {
     }
 
     private static ConsoleView createLanguageConsole(final Project project, final SbtConsole sbtConsole) {
-        final LanguageConsoleImpl sbtLanguageConsole = new LanguageConsoleImpl(project, "SBT", SbtLanguage.INSTANCE);
+        final LanguageConsoleImpl sbtLanguageConsole = new LanguageConsoleImpl(project, "SBT", SbtLanguage.INSTANCE, false);
         sbtLanguageConsole.setShowSeparatorLine(false);
+        sbtLanguageConsole.initComponents();
         enableLinkedHorizontalScrollFromHistoryViewer(sbtLanguageConsole);        
 
         // important to only have one history controller, even if SBT is restarted.
