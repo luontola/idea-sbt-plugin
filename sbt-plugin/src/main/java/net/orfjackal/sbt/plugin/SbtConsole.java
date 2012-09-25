@@ -41,6 +41,7 @@ import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.ui.ButtonlessScrollBarUI;
+import com.intellij.util.ui.UIUtil;
 import net.orfjackal.sbt.plugin.sbtlang.SbtFileType;
 import net.orfjackal.sbt.plugin.sbtlang.SbtLanguage;
 
@@ -174,7 +175,7 @@ public class SbtConsole {
             final LanguageConsoleViewImpl languageConsoleView = (LanguageConsoleViewImpl) consoleView;
             final LanguageConsoleImpl console = languageConsoleView.getConsole();
 
-            SwingUtilities.invokeLater(new Runnable() {
+            UIUtil.invokeAndWaitIfNeeded(new Runnable() {
                 public void run() {
                     languageConsoleView.flushDeferredText();
                     ApplicationManagerEx.getApplication().runWriteAction(new Runnable() {
@@ -202,7 +203,7 @@ public class SbtConsole {
         if (startOffset > 0) {
             String text = document.getText(TextRange.create(startOffset, document.getTextLength()));
             if (text.equals(lastPrompt)) {
-                SwingUtilities.invokeLater(new Runnable() {
+                UIUtil.invokeAndWaitIfNeeded(new Runnable() {
                     public void run() {
                         document.replaceString(startOffset, document.getTextLength(), replacement);
                     }
