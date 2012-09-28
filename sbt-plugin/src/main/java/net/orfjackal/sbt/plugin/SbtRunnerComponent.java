@@ -26,6 +26,7 @@ import com.intellij.util.concurrency.SwingWorker;
 import net.orfjackal.sbt.plugin.settings.*;
 import net.orfjackal.sbt.runner.*;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -201,7 +202,11 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
                     } catch (Exception e) {
                         // ignore
                     }
-                    console.enablePrompt();
+                    SwingUtilities.invokeLater(new Runnable() {
+                        public void run() {
+                            console.enablePrompt();
+                        }
+                    });
                 }
             });
         }

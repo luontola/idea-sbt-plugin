@@ -87,6 +87,7 @@ public class SbtRunner {
         if (wait) {
             output.waitForOutput(Arrays.asList(PROMPT, FAILED_TO_COMPILE_PROMPT), Arrays.<String>asList());
             output.close();
+            onStarted.run();
         } else {
             new Thread() {
                 @Override
@@ -94,7 +95,7 @@ public class SbtRunner {
                     try {
                         output.waitForOutput(Arrays.asList(PROMPT, FAILED_TO_COMPILE_PROMPT), Arrays.<String>asList());
                         output.close();
-                        SwingUtilities.invokeLater(onStarted);
+                        onStarted.run();
                     } catch (IOException e) {
                         // ignore
                     }
