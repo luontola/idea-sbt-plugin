@@ -20,6 +20,9 @@ import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
+import com.intellij.openapi.command.impl.UndoManagerImpl;
+import com.intellij.openapi.command.undo.DocumentReferenceManager;
+import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.ScrollingModel;
@@ -48,6 +51,7 @@ import net.orfjackal.sbt.plugin.sbtlang.SbtLanguage;
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.awt.*;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -105,25 +109,55 @@ public class SbtConsole {
         enableLinkedHorizontalScrollFromHistoryViewer(sbtLanguageConsole);
 
         // important to only have one history controller, even if SBT is restarted.
-        final ConsoleHistoryController historyController = new ConsoleHistoryController("scala", null, sbtLanguageConsole, new ConsoleHistoryModel());
+        final ConsoleHistoryModel myConsoleHistoryModel = new ConsoleHistoryModel();
+        final ConsoleHistoryController historyController = new ConsoleHistoryController("scala", null, sbtLanguageConsole, myConsoleHistoryModel);
         historyController.install();
         LanguageConsoleViewImpl consoleView = new LanguageConsoleViewImpl(sbtLanguageConsole) {
             @Override
             public void attachToProcess(ProcessHandler processHandler) {
                 super.attachToProcess(processHandler);
                 ConsoleExecuteActionHandler executeActionHandler = new ConsoleExecuteActionHandler(processHandler, false) {
-                    {
-                        setConsoleHistoryModel(historyController.getModel());
+                    @Override
+                    public ConsoleHistoryModel getConsoleHistoryModel() {
+                        return myConsoleHistoryModel;
                     }
 
-                    @Override
-                    public void runExecuteAction(final LanguageConsoleImpl languageConsole) {
+                    public void runExecuteAction(LanguageConsoleImpl languageConsole) {
                         EditorEx consoleEditor = languageConsole.getConsoleEditor();
                         consoleEditor.setCaretEnabled(false);
-                        super.runExecuteAction(languageConsole);
+
+                        //
+                        // COPY PASTED from base class to use custom history model.
+                        //
+
+                        // process input and add to history
+                        Document document = languageConsole.getCurrentEditor().getDocument();
+                        String text = document.getText();
+                        TextRange range = new TextRange(0, document.getTextLength());
+
+                        languageConsole.getCurrentEditor().getSelectionModel().setSelection(range.getStartOffset(), range.getEndOffset());
+
+                        if (true /*myAddCurrentToHistory*/) {
+                          languageConsole.addCurrentToHistory(range, false, false);
+                        }
+
+                        languageConsole.setInputText("");
+
+                        UndoManager manager = UndoManager.getInstance(languageConsole.getProject());
+                        ((UndoManagerImpl)manager).invalidateActionsFor(DocumentReferenceManager.getInstance().create(document));
+
+                        myConsoleHistoryModel.addToHistory(text);
+                        // execute(text);
+                        processLine(text);
+
+                        //
+                        // END COPY/PASTE
+                        //
+
                         // hide the prompts until the command has completed.
                         languageConsole.setPrompt("  ");
-                    }
+                      }
+
                 };
                 // SBT echos the command, don't add it to the output a second time.
                 executeActionHandler.setAddCurrentToHistory(true);
@@ -138,7 +172,6 @@ public class SbtConsole {
         };
         sbtLanguageConsole.setPrompt("  ");
         addFilters(project, consoleView);
-        consoleView.setFlushDelay(50);
 
         return consoleView;
     }
