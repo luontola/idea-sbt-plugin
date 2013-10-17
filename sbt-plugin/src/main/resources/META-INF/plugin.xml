@@ -23,6 +23,9 @@
     <change-notes><![CDATA[
         <ul>
 
+        <dt><b>1.5.1 (2013-10-17)</b></dt>
+        <li>Compatibility with IntelliJ IDEA 13 (Cardea)</li>
+
         <dt><b>1.5.0 (2011-07-21)</b></dt>
         <li>Require IntelliJ IDEA 12 (Leda)</li>
         <li>Cleaner UI for Before Run tasks</li>
