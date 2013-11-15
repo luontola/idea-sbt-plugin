@@ -17,7 +17,7 @@ Please reports issues to the GitHub issue tracker
 ### Related Projects
 
  - [sbt-idea](https://github.com/mpeltonen/sbt-idea) An SBT plugin for generating IntelliJ projects from your SBT build
- - [intellij-sbt](https://github.com/JetBrains/intellij-sbt) Developed by JetBrains, a plugin that might eventually take over from sbt-idea AND idea-sbt-plugin.
+ - [intellij-structure](https://github.com/JetBrains/sbt-structure) Developed by JetBrains, a plugin that might eventually take over from sbt-idea AND idea-sbt-plugin.
 
 ### Building
 
