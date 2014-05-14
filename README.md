@@ -23,7 +23,7 @@ Please reports issues to the GitHub issue tracker
 
 To build the project:
 
-    % mvn -Didea.home="/Applications/Idea 12.app" install
+    % mvn -Didea.home="/Applications/IntelliJ Idea 13.1.app" install
     % ls -la sbt-dist/target/idea-sbt-plugin-*.zip  # File, Settings, Plugins, Install from Disk
 
 You can also open this project in IntelliJ. Point the Project SDK to an IntelliJ Plugin SDK,
