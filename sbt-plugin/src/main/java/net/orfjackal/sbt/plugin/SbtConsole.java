@@ -4,25 +4,19 @@
 
 package net.orfjackal.sbt.plugin;
 
-import com.intellij.execution.console.ConsoleHistoryController;
-import com.intellij.execution.console.LanguageConsoleImpl;
-import com.intellij.execution.console.LanguageConsoleViewImpl;
+import com.intellij.execution.console.*;
 import com.intellij.execution.filters.*;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.process.ConsoleHistoryModel;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.runners.AbstractConsoleRunnerWithHistory;
 import com.intellij.execution.runners.ConsoleExecuteActionHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
-import com.intellij.openapi.command.impl.UndoManagerImpl;
-import com.intellij.openapi.command.undo.DocumentReferenceManager;
-import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.ScrollingModel;
@@ -35,7 +29,6 @@ import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -43,16 +36,17 @@ import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
-import com.intellij.util.ui.ButtonlessScrollBarUI;
+import com.intellij.util.ReflectionUtil;
 import com.intellij.util.ui.UIUtil;
 import net.orfjackal.sbt.plugin.sbtlang.SbtFileType;
 import net.orfjackal.sbt.plugin.sbtlang.SbtLanguage;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.awt.*;
 import java.lang.reflect.Field;
-import java.util.Arrays;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SbtConsole {
@@ -126,42 +120,36 @@ public class SbtConsole {
                         EditorEx consoleEditor = languageConsole.getConsoleEditor();
                         consoleEditor.setCaretEnabled(false);
 
-                        //
-                        // COPY PASTED from base class to use custom history model.
-                        //
-
-                        // process input and add to history
-                        Document document = languageConsole.getCurrentEditor().getDocument();
-                        String text = document.getText();
-                        TextRange range = new TextRange(0, document.getTextLength());
-
-                        languageConsole.getCurrentEditor().getSelectionModel().setSelection(range.getStartOffset(), range.getEndOffset());
-
-                        if (true /*myAddCurrentToHistory*/) {
-                          languageConsole.addCurrentToHistory(range, false, false);
-                        }
-
-                        languageConsole.setInputText("");
-
-                        UndoManager manager = UndoManager.getInstance(languageConsole.getProject());
-                        ((UndoManagerImpl)manager).invalidateActionsFor(DocumentReferenceManager.getInstance().create(document));
-
-                        myConsoleHistoryModel.addToHistory(text);
-                        // execute(text);
-                        processLine(text);
-
-                        //
-                        // END COPY/PASTE
-                        //
+                        super.runExecuteAction(languageConsole);
 
                         // hide the prompts until the command has completed.
                         languageConsole.setPrompt("  ");
-                      }
+                        consoleEditor.setCaretEnabled(true);
+                    }
+                    protected void execute(@NotNull String text, @NotNull LanguageConsoleView console) {
+                        EditorEx consoleEditor = console.getConsole().getConsoleEditor();
+                        consoleEditor.setCaretEnabled(false);
+                        super.execute(text, console);
+                        // hide the prompts until the command has completed.
+                        console.getConsole().setPrompt("  ");
+                        consoleEditor.setCaretEnabled(true);
+                    }
 
                 };
                 // SBT echos the command, don't add it to the output a second time.
                 executeActionHandler.setAddCurrentToHistory(true);
-                AnAction action = AbstractConsoleRunnerWithHistory.createConsoleExecAction(sbtLanguageConsole, processHandler, executeActionHandler);
+                try {
+                    java.util.List<Field> fields = ReflectionUtil.collectFields(executeActionHandler.getClass());
+                    for (Field field : fields) {
+                        if (field.getType() == ConsoleHistoryModel.class) {
+                            field.setAccessible(true);
+                            field.set(executeActionHandler, myConsoleHistoryModel);
+                        }
+                    }
+                } catch (Exception err) {
+                    logger.warn("Unable to reflectively set field in " + executeActionHandler.getClass() + ", history in the SBT console may not work.", err);
+                }
+                AnAction action = new ConsoleExecuteAction(this, executeActionHandler);
                 action.registerCustomShortcutSet(action.getShortcutSet(), sbtLanguageConsole.getComponent());
             }
 
