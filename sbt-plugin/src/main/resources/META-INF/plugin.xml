@@ -4,7 +4,7 @@
     <id>SBT</id>
     <name>SBT</name>
     <version>${project.version}</version>
-    <idea-version since-build="122.327"/>
+    <idea-version since-build="135.690"/>
     <category>Build</category>
 
     <vendor url="http://www.orfjackal.net">Esko Luontola</vendor>
@@ -22,6 +22,9 @@
     ]]></description>
     <change-notes><![CDATA[
         <ul>
+
+        <dt><b>1.6.0 (2014-05-17)</b></dt>
+        <li>Require IntelliJ IDEA 13.1 (Cardea)</li>
 
         <dt><b>1.5.1 (2013-10-17)</b></dt>
         <li>Compatibility with IntelliJ IDEA 13 (Cardea)</li>
