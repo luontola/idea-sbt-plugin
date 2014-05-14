@@ -22,7 +22,8 @@
     ]]></description>
     <change-notes><![CDATA[
         <ul>
-
+        <dt><b>1.6.1 (2014-05-17)</b></dt>
+        <li>Relax version requirement to admit IDEA 13.1.0 (Cardea)</li>
         <dt><b>1.6.0 (2014-05-17)</b></dt>
         <li>Require IntelliJ IDEA 13.1 (Cardea)</li>
 
