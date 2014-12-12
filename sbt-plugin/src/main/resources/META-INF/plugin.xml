@@ -84,6 +84,8 @@
         <completion.contributor language="TEXT" implementationClass="net.orfjackal.sbt.plugin.sbtlang.SbtCompletionContributor"/>
         <lang.fileViewProviderFactory language="SBT"
                                               implementationClass="net.orfjackal.sbt.plugin.sbtlang.SbtFileViewProviderFactory"/>
+
+        <actionPromoter implementation="net.orfjackal.sbt.plugin.SbtActionPromoter"/>
     </extensions>
 
     <project-components>
@@ -102,5 +104,10 @@
             <implementation-class>net.orfjackal.sbt.plugin.settings.SbtApplicationSettingsComponent</implementation-class>
         </component>
     </application-components>
+    <actions>
+        <action id="SbtConsole.Execute" class="net.orfjackal.sbt.plugin.SbtConsoleExecuteAction">
+            <keyboard-shortcut first-keystroke="ENTER" keymap="$default"/>
+        </action>
+    </actions>
 
 </idea-plugin>
