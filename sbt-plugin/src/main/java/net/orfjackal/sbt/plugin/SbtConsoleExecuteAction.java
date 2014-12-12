@@ -14,6 +14,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.util.TextRange;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,6 +26,24 @@ import java.io.OutputStream;
  */
 public class SbtConsoleExecuteAction extends AnAction {
     private static final Logger logger = Logger.getInstance(SbtConsoleExecuteAction.class.getName());
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+        Editor editor = e.getData(CommonDataKeys.EDITOR);
+        if (editor == null || !(editor instanceof EditorEx)) {
+            e.getPresentation().setEnabled(false);
+            return;
+        }
+        LanguageConsoleImpl console = SbtConsoleInfo.getConsole(editor);
+        if (console == null)  {
+            e.getPresentation().setEnabled(false);
+            return;
+        }
+        boolean isEnabled = !((EditorEx)editor).isRendererMode() &&
+                !SbtConsoleInfo.getHandler(editor).isProcessTerminated();
+
+        e.getPresentation().setEnabled(isEnabled);
+    }
+
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         final Editor editor = e.getData(CommonDataKeys.EDITOR);
