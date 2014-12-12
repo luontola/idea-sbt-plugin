@@ -11,7 +11,6 @@ import com.intellij.execution.process.ConsoleHistoryModel;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.runners.ConsoleExecuteActionHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.actionSystem.*;
@@ -110,52 +109,18 @@ public class SbtConsole {
             @Override
             public void attachToProcess(ProcessHandler processHandler) {
                 super.attachToProcess(processHandler);
-                ConsoleExecuteActionHandler executeActionHandler = new ConsoleExecuteActionHandler(processHandler, false) {
-                    @Override
-                    public ConsoleHistoryModel getConsoleHistoryModel() {
-                        return myConsoleHistoryModel;
-                    }
-
-                    public void runExecuteAction(LanguageConsoleImpl languageConsole) {
-                        EditorEx consoleEditor = languageConsole.getConsoleEditor();
-                        consoleEditor.setCaretEnabled(false);
-
-                        super.runExecuteAction(languageConsole);
-
-                        // hide the prompts until the command has completed.
-                        languageConsole.setPrompt("  ");
-                        consoleEditor.setCaretEnabled(true);
-                    }
-                    protected void execute(@NotNull String text, @NotNull LanguageConsoleView console) {
-                        EditorEx consoleEditor = console.getConsole().getConsoleEditor();
-                        consoleEditor.setCaretEnabled(false);
-                        super.execute(text, console);
-                        // hide the prompts until the command has completed.
-                        console.getConsole().setPrompt("  ");
-                        consoleEditor.setCaretEnabled(true);
-                    }
-
-                };
-                // SBT echos the command, don't add it to the output a second time.
-                executeActionHandler.setAddCurrentToHistory(true);
-                try {
-                    java.util.List<Field> fields = ReflectionUtil.collectFields(executeActionHandler.getClass());
-                    for (Field field : fields) {
-                        if (field.getType() == ConsoleHistoryModel.class) {
-                            field.setAccessible(true);
-                            field.set(executeActionHandler, myConsoleHistoryModel);
-                        }
-                    }
-                } catch (Exception err) {
-                    logger.warn("Unable to reflectively set field in " + executeActionHandler.getClass() + ", history in the SBT console may not work.", err);
-                }
-                AnAction action = new ConsoleExecuteAction(this, executeActionHandler);
-                action.registerCustomShortcutSet(action.getShortcutSet(), sbtLanguageConsole.getComponent());
+                SbtConsoleInfo.addConsole(getConsole(), myConsoleHistoryModel, processHandler);
             }
 
             @Override
             public boolean hasDeferredOutput() {
                 return super.hasDeferredOutput();
+            }
+
+            @Override
+            public void dispose() {
+                super.dispose();
+                SbtConsoleInfo.disposeConsole(getConsole());
             }
         };
         sbtLanguageConsole.setPrompt("  ");
