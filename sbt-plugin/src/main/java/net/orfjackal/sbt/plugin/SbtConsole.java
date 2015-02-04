@@ -4,9 +4,10 @@
 
 package net.orfjackal.sbt.plugin;
 
-import com.intellij.execution.console.LanguageConsoleImpl;
+import com.intellij.execution.console.*;
 import com.intellij.execution.filters.*;
 import com.intellij.execution.impl.ConsoleViewImpl;
+import com.intellij.execution.process.ConsoleHistoryModel;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
@@ -14,20 +15,36 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.ScrollingModel;
+import com.intellij.openapi.editor.event.VisibleAreaEvent;
+import com.intellij.openapi.editor.event.VisibleAreaListener;
+import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.testFramework.LightVirtualFile;
+import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
+import com.intellij.util.ReflectionUtil;
+import com.intellij.util.ui.UIUtil;
+import net.orfjackal.sbt.plugin.sbtlang.SbtFileType;
+import net.orfjackal.sbt.plugin.sbtlang.SbtLanguage;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.awt.*;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -51,16 +68,17 @@ public class SbtConsole {
     public SbtConsole(String title, Project project, SbtRunnerComponent runnerComponent) {
         this.title = title;
         this.project = project;
-        this.consoleView = createConsoleView(project);
+        this.consoleView = createConsoleView(project, this);
         this.runnerComponent = runnerComponent;
     }
 
-    private static ConsoleView createConsoleView(Project project) {
-        // TODO can we figure out how to make this a LanguageConsole with IDEA 14.1+
-        //      We need that for console history
-        ConsoleView consoleView = createTextConsole(project);
-        addFilters(project, consoleView);
-        return consoleView;
+    private static ConsoleView createConsoleView(Project project, SbtConsole sbtConsole) {
+        boolean useClassicConsole = "true".equalsIgnoreCase(System.getProperty("idea.sbt.plugin.classic"));
+        if (useClassicConsole) {
+            return createTextConsole(project);
+        } else {
+            return createLanguageConsole(project, sbtConsole);
+        }
     }
 
     private static ConsoleView createTextConsole(final Project project) {
@@ -75,7 +93,140 @@ public class SbtConsole {
         return builder.getConsole();
     }
 
-    private static void addFilters(Project project, ConsoleView consoleView) {
+    private static ConsoleView createLanguageConsole(final Project project, final SbtConsole sbtConsole) {
+        LightVirtualFile lightFile = new LightVirtualFile("SBT", SbtLanguage.INSTANCE, "");
+        lightFile.setFileType(SbtFileType.INSTANCE);
+        final LanguageConsoleImpl sbtLanguageConsole = new LanguageConsoleImpl(project, "SBT", lightFile, false);
+        sbtLanguageConsole.setShowSeparatorLine(false);
+        sbtLanguageConsole.initComponents();
+        enableLinkedHorizontalScrollFromHistoryViewer(sbtLanguageConsole);
+
+        // important to only have one history controller, even if SBT is restarted.
+        final ConsoleHistoryModel myConsoleHistoryModel = new ConsoleHistoryModel();
+        final ConsoleHistoryController historyController = new ConsoleHistoryController("scala", null, sbtLanguageConsole, myConsoleHistoryModel);
+        historyController.install();
+        LanguageConsoleViewImpl consoleView = new LanguageConsoleViewImpl(sbtLanguageConsole) {
+            @Override
+            public void attachToProcess(ProcessHandler processHandler) {
+                super.attachToProcess(processHandler);
+                ProcessBackedConsoleExecuteActionHandler executeActionHandler = new ProcessBackedConsoleExecuteActionHandler(processHandler, false) {
+                    @Override
+                    public ConsoleHistoryModel getConsoleHistoryModel() {
+                        return myConsoleHistoryModel;
+                    }
+
+                    protected void execute(@NotNull String text, @NotNull LanguageConsoleView console) {
+                        EditorEx consoleEditor = console.getConsole().getConsoleEditor();
+                        consoleEditor.setCaretEnabled(false);
+                        super.execute(text, console);
+                        // hide the prompts until the command has completed.
+                        console.getConsole().setPrompt("  ");
+                        consoleEditor.setCaretEnabled(true);
+                    }
+
+                };
+                // SBT echos the command, don't add it to the output a second time.
+                executeActionHandler.setAddCurrentToHistory(true);
+                try {
+                    java.util.List<Field> fields = ReflectionUtil.collectFields(executeActionHandler.getClass());
+                    for (Field field : fields) {
+                        if (field.getType() == ConsoleHistoryModel.class) {
+                            field.setAccessible(true);
+                            field.set(executeActionHandler, myConsoleHistoryModel);
+                        }
+                    }
+                } catch (Exception err) {
+                    logger.warn("Unable to reflectively set field in " + executeActionHandler.getClass() + ", history in the SBT console may not work.", err);
+                }
+                AnAction action = new ConsoleExecuteAction(this, executeActionHandler);
+                action.registerCustomShortcutSet(action.getShortcutSet(), sbtLanguageConsole.getComponent());
+            }
+
+            @Override
+            public boolean hasDeferredOutput() {
+                return super.hasDeferredOutput();
+            }
+        };
+        sbtLanguageConsole.setPrompt("  ");
+        addFilters(project, consoleView);
+
+        return consoleView;
+    }
+
+    private static void enableLinkedHorizontalScrollFromHistoryViewer(final LanguageConsoleImpl sbtLanguageConsole) {
+        JBScrollBar horizontalScrollBar = new JBScrollBar(Adjustable.HORIZONTAL);
+        horizontalScrollBar.setUI(new BasicScrollBarUI() {
+            @Override
+            public Dimension getPreferredSize(JComponent c) {
+                return new Dimension(0, 0);
+            }
+        });
+        sbtLanguageConsole.getHistoryViewer().getScrollPane().setHorizontalScrollBar(horizontalScrollBar);
+        sbtLanguageConsole.getHistoryViewer().setHorizontalScrollbarVisible(true);
+
+        final VisibleAreaListener areaListener = new VisibleAreaListener() {
+            public void visibleAreaChanged(VisibleAreaEvent e) {
+                final int offset = sbtLanguageConsole.getHistoryViewer().getScrollingModel().getHorizontalScrollOffset();
+                final ScrollingModel model = sbtLanguageConsole.getConsoleEditor().getScrollingModel();
+                final int historyOffset = model.getHorizontalScrollOffset();
+                if (historyOffset != offset) {
+                    try {
+                        model.disableAnimation();
+                        model.scrollHorizontally(offset);
+                    } finally {
+                        model.enableAnimation();
+                    }
+                }
+            }
+        };
+        sbtLanguageConsole.getHistoryViewer().getScrollingModel().addVisibleAreaListener(areaListener);
+    }
+
+    public void enablePrompt() {
+        if (consoleView instanceof LanguageConsoleViewImpl) {
+            final LanguageConsoleViewImpl languageConsoleView = (LanguageConsoleViewImpl) consoleView;
+            final LanguageConsoleImpl console = languageConsoleView.getConsole();
+
+            UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+                public void run() {
+                    languageConsoleView.flushDeferredText();
+                    ApplicationManagerEx.getApplication().runWriteAction(new Runnable() {
+                        public void run() {
+                            Document document = console.getHistoryViewer().getDocument();
+                            EditorEx consoleEditor = console.getConsoleEditor();
+                            if (deleteTextFromEnd(document, "\n> ", "\n")) {
+                                console.setPrompt("> ");
+                            } else if (deleteTextFromEnd(document, "\nscala> ", "\n")) {
+                                console.setPrompt("scala> ");
+                                // not sure why this works, but it moves the caret to the end of the prompt.
+                                // without this, it apppears between the `c` and `a`.
+                                consoleEditor.getCaretModel().moveCaretRelatively(-1, 0, false, false, false);
+                            }
+                            consoleEditor.setCaretEnabled(true);
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    private static boolean deleteTextFromEnd(final Document document, String lastPrompt, final String replacement) {
+        final int startOffset = document.getTextLength() - lastPrompt.length();
+        if (startOffset > 0) {
+            String text = document.getText(TextRange.create(startOffset, document.getTextLength()));
+            if (text.equals(lastPrompt)) {
+                UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+                    public void run() {
+                        document.replaceString(startOffset, document.getTextLength(), replacement);
+                    }
+                });
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void addFilters(Project project, LanguageConsoleViewImpl consoleView) {
         consoleView.addMessageFilter(new ExceptionFilter(GlobalSearchScope.allScope(project)));
         consoleView.addMessageFilter(new RegexpFilter(project, CONSOLE_FILTER_REGEXP));
         consoleView.addMessageFilter(new SbtColorizerFilter());
