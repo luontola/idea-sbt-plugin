@@ -11,7 +11,6 @@ import com.intellij.execution.process.ConsoleHistoryModel;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.runners.ConsoleExecuteActionHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.actionSystem.*;
@@ -46,7 +45,7 @@ import javax.swing.*;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.awt.*;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SbtConsole {
@@ -110,22 +109,12 @@ public class SbtConsole {
             @Override
             public void attachToProcess(ProcessHandler processHandler) {
                 super.attachToProcess(processHandler);
-                ConsoleExecuteActionHandler executeActionHandler = new ConsoleExecuteActionHandler(processHandler, false) {
+                ProcessBackedConsoleExecuteActionHandler executeActionHandler = new ProcessBackedConsoleExecuteActionHandler(processHandler, false) {
                     @Override
                     public ConsoleHistoryModel getConsoleHistoryModel() {
                         return myConsoleHistoryModel;
                     }
 
-                    public void runExecuteAction(LanguageConsoleImpl languageConsole) {
-                        EditorEx consoleEditor = languageConsole.getConsoleEditor();
-                        consoleEditor.setCaretEnabled(false);
-
-                        super.runExecuteAction(languageConsole);
-
-                        // hide the prompts until the command has completed.
-                        languageConsole.setPrompt("  ");
-                        consoleEditor.setCaretEnabled(true);
-                    }
                     protected void execute(@NotNull String text, @NotNull LanguageConsoleView console) {
                         EditorEx consoleEditor = console.getConsole().getConsoleEditor();
                         consoleEditor.setCaretEnabled(false);
