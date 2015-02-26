@@ -7,7 +7,6 @@ package net.orfjackal.sbt.plugin;
 import com.intellij.execution.console.*;
 import com.intellij.execution.filters.*;
 import com.intellij.execution.impl.ConsoleViewImpl;
-import com.intellij.execution.process.ConsoleHistoryModel;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
@@ -35,7 +34,6 @@ import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
-import com.intellij.util.ReflectionUtil;
 import com.intellij.util.ui.UIUtil;
 import net.orfjackal.sbt.plugin.sbtlang.SbtFileType;
 import net.orfjackal.sbt.plugin.sbtlang.SbtLanguage;
@@ -44,7 +42,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.awt.*;
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -96,61 +93,61 @@ public class SbtConsole {
     private static ConsoleView createLanguageConsole(final Project project, final SbtConsole sbtConsole) {
         LightVirtualFile lightFile = new LightVirtualFile("SBT", SbtLanguage.INSTANCE, "");
         lightFile.setFileType(SbtFileType.INSTANCE);
-        final LanguageConsoleImpl sbtLanguageConsole = new LanguageConsoleImpl(project, "SBT", lightFile, false);
-        sbtLanguageConsole.setShowSeparatorLine(false);
-        sbtLanguageConsole.initComponents();
-        enableLinkedHorizontalScrollFromHistoryViewer(sbtLanguageConsole);
-
-        // important to only have one history controller, even if SBT is restarted.
-        final ConsoleHistoryModel myConsoleHistoryModel = new ConsoleHistoryModel();
-        final ConsoleHistoryController historyController = new ConsoleHistoryController("scala", null, sbtLanguageConsole, myConsoleHistoryModel);
-        historyController.install();
-        LanguageConsoleViewImpl consoleView = new LanguageConsoleViewImpl(sbtLanguageConsole) {
+        final LanguageConsoleImpl sbtLanguageConsole = new LanguageConsoleImpl(project, "SBT", lightFile) {
             @Override
             public void attachToProcess(ProcessHandler processHandler) {
                 super.attachToProcess(processHandler);
                 ProcessBackedConsoleExecuteActionHandler executeActionHandler = new ProcessBackedConsoleExecuteActionHandler(processHandler, false) {
-                    @Override
-                    public ConsoleHistoryModel getConsoleHistoryModel() {
-                        return myConsoleHistoryModel;
-                    }
 
                     protected void execute(@NotNull String text, @NotNull LanguageConsoleView console) {
-                        EditorEx consoleEditor = console.getConsole().getConsoleEditor();
+                        EditorEx consoleEditor = console.getConsoleEditor();
                         consoleEditor.setCaretEnabled(false);
                         super.execute(text, console);
                         // hide the prompts until the command has completed.
-                        console.getConsole().setPrompt("  ");
+                        setPrompt("  ");
                         consoleEditor.setCaretEnabled(true);
                     }
 
                 };
                 // SBT echos the command, don't add it to the output a second time.
                 executeActionHandler.setAddCurrentToHistory(true);
-                try {
-                    java.util.List<Field> fields = ReflectionUtil.collectFields(executeActionHandler.getClass());
-                    for (Field field : fields) {
-                        if (field.getType() == ConsoleHistoryModel.class) {
-                            field.setAccessible(true);
-                            field.set(executeActionHandler, myConsoleHistoryModel);
-                        }
-                    }
-                } catch (Exception err) {
-                    logger.warn("Unable to reflectively set field in " + executeActionHandler.getClass() + ", history in the SBT console may not work.", err);
-                }
+//                            try {
+//                                java.util.List<Field> fields = ReflectionUtil.collectFields(executeActionHandler.getClass());
+//                                for (Field field : fields) {
+//                                    if (field.getType() == ConsoleHistoryModel.class) {
+//                                        field.setAccessible(true);
+//                                        field.set(executeActionHandler, myConsoleHistoryModel);
+//                                    }
+//                                }
+//                            } catch (Exception err) {
+//                                logger.warn("Unable to reflectively set field in " + executeActionHandler.getClass() + ", history in the SBT console may not work.", err);
+//                            }
                 AnAction action = new ConsoleExecuteAction(this, executeActionHandler);
-                action.registerCustomShortcutSet(action.getShortcutSet(), sbtLanguageConsole.getComponent());
-            }
-
-            @Override
-            public boolean hasDeferredOutput() {
-                return super.hasDeferredOutput();
+                action.registerCustomShortcutSet(action.getShortcutSet(), this.getComponent());
             }
         };
-        sbtLanguageConsole.setPrompt("  ");
-        addFilters(project, consoleView);
+//        sbtLanguageConsole.setShowSeparatorLine(false);
+//        sbtLanguageConsole.initComponents();
+        enableLinkedHorizontalScrollFromHistoryViewer(sbtLanguageConsole);
 
-        return consoleView;
+        final ConsoleHistoryController historyController = new ConsoleHistoryController(IdeConsoleRootType.getInstance(), null, sbtLanguageConsole);
+        historyController.install();
+        // important to only have one history controller, even if SBT is restarted.
+//        final ConsoleHistoryModel myConsoleHistoryModel = new ConsoleHistoryModel();
+//        final ConsoleHistoryController historyController = new ConsoleHistoryController("scala", null, sbtLanguageConsole, myConsoleHistoryModel);
+//        historyController.install();
+//        LanguageConsoleImpl consoleView = new LanguageConsoleImpl(sbtLanguageConsole) {
+//
+//
+//            @Override
+//            public boolean hasDeferredOutput() {
+//                return super.hasDeferredOutput();
+//            }
+//        };
+        sbtLanguageConsole.setPrompt("  ");
+        addFilters(project, sbtLanguageConsole);
+
+        return sbtLanguageConsole;
     }
 
     private static void enableLinkedHorizontalScrollFromHistoryViewer(final LanguageConsoleImpl sbtLanguageConsole) {
@@ -183,13 +180,12 @@ public class SbtConsole {
     }
 
     public void enablePrompt() {
-        if (consoleView instanceof LanguageConsoleViewImpl) {
-            final LanguageConsoleViewImpl languageConsoleView = (LanguageConsoleViewImpl) consoleView;
-            final LanguageConsoleImpl console = languageConsoleView.getConsole();
+        if (consoleView instanceof LanguageConsoleImpl) {
+            final LanguageConsoleImpl console = (LanguageConsoleImpl) consoleView;
 
             UIUtil.invokeAndWaitIfNeeded(new Runnable() {
                 public void run() {
-                    languageConsoleView.flushDeferredText();
+                    console.flushDeferredText();
                     ApplicationManagerEx.getApplication().runWriteAction(new Runnable() {
                         public void run() {
                             Document document = console.getHistoryViewer().getDocument();
@@ -226,7 +222,7 @@ public class SbtConsole {
         return false;
     }
 
-    private static void addFilters(Project project, LanguageConsoleViewImpl consoleView) {
+    private static void addFilters(Project project, LanguageConsoleImpl consoleView) {
         consoleView.addMessageFilter(new ExceptionFilter(GlobalSearchScope.allScope(project)));
         consoleView.addMessageFilter(new RegexpFilter(project, CONSOLE_FILTER_REGEXP));
         consoleView.addMessageFilter(new SbtColorizerFilter());
