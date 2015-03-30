@@ -5,7 +5,7 @@
     <parent>
         <groupId>net.orfjackal.idea-sbt-plugin</groupId>
         <artifactId>sbt</artifactId>
-        <version>1.6.2-SNAPSHOT</version>
+        <version>1.7.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>sbt-dist</artifactId>

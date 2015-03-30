@@ -145,7 +145,6 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
         boolean success;
         try {
             success = sbt.execute(action);
-            this.getConsole().enablePrompt();
             // TODO: update target folders (?)
             // org.jetbrains.idea.maven.project.MavenProjectsManager#updateProjectFolders
             // org.jetbrains.idea.maven.execution.MavenRunner#runBatch
@@ -202,11 +201,6 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
                     } catch (Exception e) {
                         // ignore
                     }
-                    SwingUtilities.invokeLater(new Runnable() {
-                        public void run() {
-                            console.enablePrompt();
-                        }
-                    });
                 }
             });
         }

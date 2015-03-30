@@ -5,6 +5,7 @@
 package net.orfjackal.sbt.plugin;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import net.miginfocom.swing.MigLayout;
 
@@ -68,7 +69,7 @@ public class SelectSbtActionDialog extends DialogWrapper {
         JLabel runInCurrentModuleLabel = new JLabel(MessageBundle.message("sbt.tasks.select.action.run.current"));
         runInCurrentModuleLabel.setToolTipText(MessageBundle.message("sbt.tasks.select.action.run.current.tooltip"));
 
-        actionField = new JComboBox(SBT_ACTIONS_WITH_SEPARATOR);
+        actionField = new ComboBox(SBT_ACTIONS_WITH_SEPARATOR);
         actionField.setEditable(true);
         actionField.setSelectedItem(selectedAction);
         actionField.setRenderer(new DefaultListCellRenderer() {

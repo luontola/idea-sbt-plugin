@@ -4,7 +4,7 @@
     <id>SBT</id>
     <name>SBT</name>
     <version>${project.version}</version>
-    <idea-version since-build="135.475"/>
+    <idea-version since-build="141.177"/>
     <category>Build</category>
 
     <vendor url="http://www.orfjackal.net">Esko Luontola</vendor>
@@ -22,6 +22,13 @@
     ]]></description>
     <change-notes><![CDATA[
         <ul>
+        <dt><b>1.7.0 (2014-03-26)</b></dt>
+        <li>Be compatible with / require IntelliJ 14.1</li>
+        <li>Revert UI to a TextConsole rather than a LanguageConsole. We lose command history. Hopefully we can find a way to restore this feature in a subsequent release once we adapt to changes in IntelliJ</li>
+
+        <dt><b>1.6.0 (2014-05-17)</b></dt>
+        <li>Require IntelliJ IDEA 13.1 (Cardea)</li>
+
         <dt><b>1.6.1 (2014-05-17)</b></dt>
         <li>Relax version requirement to admit IDEA 13.1.0 (Cardea)</li>
         <dt><b>1.6.0 (2014-05-17)</b></dt>
