@@ -4,7 +4,7 @@
     <id>SBT</id>
     <name>SBT</name>
     <version>${project.version}</version>
-    <idea-version since-build="141.177"/>
+    <idea-version since-build="143.381"/>
     <category>Build</category>
 
     <vendor url="http://www.orfjackal.net">Esko Luontola</vendor>
@@ -22,6 +22,9 @@
     ]]></description>
     <change-notes><![CDATA[
         <ul>
+        <dt><b>1.8.0 (2015-12-03)</b></dt>
+        <li>Be compatible with / require IntelliJ 15</li>
+
         <dt><b>1.7.0 (2014-03-26)</b></dt>
         <li>Be compatible with / require IntelliJ 14.1</li>
         <li>Revert UI to a TextConsole rather than a LanguageConsole. We lose command history. Hopefully we can find a way to restore this feature in a subsequent release once we adapt to changes in IntelliJ</li>
