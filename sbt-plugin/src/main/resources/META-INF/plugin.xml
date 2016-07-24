@@ -4,7 +4,7 @@
     <id>SBT</id>
     <name>SBT</name>
     <version>${project.version}</version>
-    <idea-version since-build="143.381"/>
+    <idea-version since-build="162.1121"/>
     <category>Build</category>
 
     <vendor url="http://www.orfjackal.net">Esko Luontola</vendor>
@@ -22,6 +22,9 @@
     ]]></description>
     <change-notes><![CDATA[
         <ul>
+        <dt><b>1.9.0 (2016-07-24)</b></dt>
+        <li>Restore history support / require IntelliJ 2016.2</li>
+
         <dt><b>1.8.0 (2015-12-03)</b></dt>
         <li>Be compatible with / require IntelliJ 15</li>
 
