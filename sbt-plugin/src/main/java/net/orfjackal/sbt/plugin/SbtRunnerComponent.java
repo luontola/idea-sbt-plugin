@@ -10,7 +10,8 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.progress.*;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.DumbAwareRunnable;
 import com.intellij.openapi.project.Project;
@@ -18,15 +19,16 @@ import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.StreamUtil;
-import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.util.concurrency.SwingWorker;
-import net.orfjackal.sbt.plugin.settings.*;
-import net.orfjackal.sbt.runner.*;
+import net.orfjackal.sbt.plugin.settings.SbtApplicationSettingsComponent;
+import net.orfjackal.sbt.plugin.settings.SbtProjectSettingsComponent;
+import net.orfjackal.sbt.runner.OutputReader;
+import net.orfjackal.sbt.runner.SbtRunner;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -97,6 +99,9 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
     public void disposeComponent() {
         unregisterToolWindow();
         destroyProcess();
+        if (console != null) {
+            console.dispose();
+        }
     }
 
     private SbtConsole createConsole(Project project) {

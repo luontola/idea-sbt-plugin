@@ -12,6 +12,7 @@ import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
@@ -45,7 +46,7 @@ import java.awt.*;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class SbtConsole {
+public class SbtConsole implements Disposable {
     // org.jetbrains.idea.maven.embedder.MavenConsoleImpl
 
     private static final Logger logger = Logger.getInstance(SbtConsole.class.getName());
@@ -67,6 +68,11 @@ public class SbtConsole {
         this.project = project;
         this.consoleView = createConsoleView(project, this);
         this.runnerComponent = runnerComponent;
+    }
+
+    public void dispose() {
+        //this causes idea to throw com.intellij.openapi.util.TraceableDisposable$DisposalException: Double release of editor:
+//        this.consoleView.dispose();
     }
 
     private static ConsoleView createConsoleView(Project project, SbtConsole sbtConsole) {
