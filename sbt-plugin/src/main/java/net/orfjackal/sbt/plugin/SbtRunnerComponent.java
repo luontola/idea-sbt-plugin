@@ -234,13 +234,17 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
         return new File("no-launcher.jar");
     }
 
+    private static Boolean launcherUnpacked = false;
+
     private File unpackBundledLauncher() throws IOException {
         String launcherName = "sbt-launch.jar";
         File launcherTemp = new File(new File(PathManager.getSystemPath(), "sbt"), launcherName);
-        if (!launcherTemp.exists()) {
+        //update launcher when plugin is updated, overwrite it only on restart
+        if (!launcherUnpacked || !launcherTemp.exists()) {
             InputStream resource = SbtRunnerComponent.class.getClassLoader().getResourceAsStream("sbt-launch.jar");
             byte[] bytes = StreamUtil.loadFromStream(resource);
             FileUtil.writeToFile(launcherTemp, bytes);
+            launcherUnpacked = true;
         }
         return launcherTemp;
     }
