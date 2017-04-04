@@ -4,7 +4,7 @@ Integrates Intellij IDEA with [SBT](scala-sbt.org) to build Scala projects easil
 
 ### DEPRECATION ###
 
-JetBrains have recently [added support](https://blog.jetbrains.com/scala/2017/03/23/scala-plugin-for-intellij-idea-2017-1-cleaner-ui-sbt-shell-repl-worksheet-akka-support-and-more/) for an SBT console to the IntellIJ Scala Plugin. This is now the recommended way to use SBT within IntellIJ. No new releases of this plugin are planned.
+__JetBrains have recently [added support](https://blog.jetbrains.com/scala/2017/03/23/scala-plugin-for-intellij-idea-2017-1-cleaner-ui-sbt-shell-repl-worksheet-akka-support-and-more/) for an SBT console to the IntellIJ Scala Plugin. This is now the recommended way to use SBT within IntellIJ. No new releases of this plugin are planned.__
 
 
 ### Documentation
