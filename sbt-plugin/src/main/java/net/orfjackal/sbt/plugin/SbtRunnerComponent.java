@@ -4,6 +4,10 @@
 
 package net.orfjackal.sbt.plugin;
 
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationDisplayType;
+import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.PathManager;
@@ -22,11 +26,10 @@ import com.intellij.openapi.vfs.*;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.util.concurrency.SwingWorker;
 import net.orfjackal.sbt.plugin.settings.*;
 import net.orfjackal.sbt.runner.*;
+import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +40,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
     private static final Logger logger = Logger.getInstance(SbtRunnerComponent.class.getName());
     private static final boolean DEBUG = false;
     private static final String SBT_CONSOLE_TOOL_WINDOW_ID = "SBT Console";
+    private static final NotificationGroup NOTIFICATION_GROUP = new NotificationGroup("SBT", NotificationDisplayType.BALLOON, true);
 
     private SbtRunner sbt;
     private SbtConsole console;
@@ -139,7 +143,7 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
      */
     public boolean executeAndWait(String action) throws IOException {
         saveAllDocuments();
-        if (!startIfNotStartedSafe(true)) {
+        if (!startIfNotStartedSafe(true, action)) {
             return false;
         }
         boolean success;
@@ -174,14 +178,25 @@ public class SbtRunnerComponent extends AbstractProjectComponent implements Dumb
         return sbt.getFormattedCommand();
     }
 
-    public final boolean startIfNotStartedSafe(boolean wait) {
+    /** @param forAction used only for presenting correct error logs.
+     *                   Null when starting for console, any string for other uses. */
+    public final boolean startIfNotStartedSafe(boolean wait, @Nullable final String forAction) {
         try {
             startIfNotStarted(wait);
             return true;
-        } catch (Throwable e) {
-            String toolWindowId = MessageBundle.message("sbt.console.id");
-            ToolWindowManager.getInstance(project).notifyByBalloon(toolWindowId, MessageType.ERROR, "Unable to start SBT. " + e.getMessage());
+        } catch (final Throwable e) {
             logger.info("Failed to start SBT", e);
+            ApplicationManager.getApplication().invokeLater(new Runnable() {
+                public void run() {
+                    if(forAction == null){
+                        String toolWindowId = MessageBundle.message("sbt.console.id");
+                        ToolWindowManager.getInstance(project).notifyByBalloon(toolWindowId, MessageType.ERROR, "Unable to start SBT. " + e.getMessage());
+                    } else {
+                        Notification notification = NOTIFICATION_GROUP.createNotification("Unable to start SBT for \""+forAction+"\": " + e.getMessage(), MessageType.ERROR);
+                        Notifications.Bus.notify(notification);
+                    }
+                }
+            });
             return false;
         }
     }

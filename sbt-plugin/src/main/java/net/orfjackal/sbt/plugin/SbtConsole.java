@@ -200,7 +200,7 @@ public class SbtConsole {
 
         @Override
         public void actionPerformed(AnActionEvent event) {
-            runnerComponent.startIfNotStartedSafe(false);
+            runnerComponent.startIfNotStartedSafe(false, null);
         }
 
         @Override
