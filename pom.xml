@@ -4,7 +4,7 @@
 
     <groupId>net.orfjackal.idea-sbt-plugin</groupId>
     <artifactId>sbt</artifactId>
-    <version>1.8.1-SNAPSHOT</version>
+    <version>1.9.0</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -23,8 +23,8 @@
              command line with -Didea.home=...
 
              Do not commit any changes to this part of the POM. -->
-        <idea.version>141.177</idea.version>
-        <idea.home>/Applications/IntelliJ IDEA 14.app/Contents</idea.home>
+        <idea.version>162.1121</idea.version>
+        <idea.home>/Applications/Nika-IU-110.187.app</idea.home>
     </properties>
 
     <name>SBT</name>
